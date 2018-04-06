@@ -1,6 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #
 # Copyright (c) 2016, Conor Patrick
+# Copyright (c) 2018, Nitrokey UG
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -76,9 +77,9 @@ class commands:
 if len(sys.argv) not in [2,3,4,5,6]:
     print('usage: %s <action> [<arguments>] [-s serial-number]' % sys.argv[0])
     print('actions: ')
-    print("""   configure <ecc-private-key> <output-file>: setup the device configuration.  Specify ECC P-256 private
+    print("""   configure <ecc-private-key> <output-file> [--reuse-keys]: setup the device configuration.  Specify ECC P-256 private
                                                            key for token attestation.  Specify temporary output file for
-                                                           generated keys.""")
+                                                           generated keys. Reuses r/w keys if --reuse-keys is specified.""")
     print('     rng: Continuously dump random numbers from the devices hardware RNG.')
     print('     seed: update the hardware RNG seed with input from stdin')
     print('     wipe: wipe all registered keys on U2F Zero.  Must also press button 5 times.  Not reversible.')
@@ -91,7 +92,7 @@ if len(sys.argv) not in [2,3,4,5,6]:
 def open_u2f(SN=None):
     h = hid.device()
     try:
-        h.open(0x10c4,0x8acf,SN if SN is None else unicode(SN))
+        h.open(0x20a0,0x4287,SN if SN is None else unicode(SN))
         print('opened ', SN)
     except IOError as ex:
         print( ex)
@@ -102,8 +103,10 @@ def open_u2f(SN=None):
 
 
 def do_list():
-    for d in hid.enumerate(0x10c4, 0x8acf):
-        keys = d.keys()
+    for d in hid.enumerate(0x20a0, 0x4287):
+        if not d['serial_number']:
+            print('\n!!! Serial number is empty. Try to run the tool with administrator privileges (e.g. with `sudo`).\n')
+        keys = list(d.keys())
         keys.sort()
         for key in keys:
             print("%s : %s" % (key, d[key]))
@@ -138,8 +141,8 @@ def get_crc(data):
     for i in data:
         crc = feed_crc(crc,ord(i))
     crc = reverse_bits(crc)
-    crc2 = crc & 0xff;
-    crc1 = (crc>>8) & 0xff;
+    crc2 = crc & 0xff
+    crc1 = (crc>>8) & 0xff
     return [crc1,crc2]
 
 def read_n_tries(dev,tries,num,wait):
@@ -164,16 +167,21 @@ def get_write_mask(key):
 
 
 
-def do_configure(h,pemkey,output):
+def do_configure(h,pemkey,output, reuse=False):
+
+    if not os.path.exists(pemkey):
+        die('Pemkey path does not exist: '+pemkey)
+
     config = "\x01\x23\x6d\x10\x00\x00\x50\x00\xd7\x2c\xa5\x71\xee\xc0\x85\x00\xc0\x00\x55\x00\x83\x71\x81\x01\x83\x71\xC1\x01\x83\x71\x83\x71\x83\x71\xC1\x71\x01\x01\x83\x71\x83\x71\xC1\x71\x83\x71\x83\x71\x83\x71\x83\x71\xff\xff\xff\xff\x00\x00\x00\x00\xff\xff\xff\xff\x00\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00\x55\x55\xff\xff\x00\x00\x00\x00\x00\x00\x13\x00\x3C\x00\x13\x00\x3C\x00\x13\x00\x3C\x00\x13\x00\x3C\x00\x3c\x00\x3C\x00\x13\x00\x3C\x00\x13\x00\x3C\x00\x13\x00\x33\x00"
 
 
     h.write([0,commands.U2F_CONFIG_IS_BUILD])
     data = h.read(64,1000)
-    if data[1] == 1:
-        print( 'Device is configured.')
+    if len(data) >= 2 and data[1] == 1:
+        print('Device is configured.')
     else:
-        die('Device not configured')
+        print(repr(data))
+        die('Device not configured. Try to power-cycle (e.g. reinsert) the device.')
 
     time.sleep(0.250)
 
@@ -207,8 +215,27 @@ def do_configure(h,pemkey,output):
     #data = array.array('B',data).tostring()
     #pubkey = binascii.hexlify(data)
 
-    wkey = [random.randint(0,255)&0xff for x in range(0,32)]
-    rkey = [random.randint(0,255)&0xff for x in range(0,32)]
+    wkey = []
+    rkey = []
+
+    if not reuse or not os.path.exists('wkey') or not os.path.exists('rkey'):
+        print('Generating wkey and rkey')
+        wkey = os.urandom(32)
+        rkey = os.urandom(32)
+        with open('wkey','w+') as f:
+            f.write(wkey)
+        with open('rkey', 'w+') as f:
+            f.write(rkey)
+    else:
+        print('Reusing generated before wkey and rkey')
+        with open('wkey', 'r') as f:
+            wkey = f.read(1024)
+        with open('rkey', 'r') as f:
+            rkey = f.read(1024)
+
+    wkey = [ord(x) for x in wkey]
+    rkey = [ord(x) for x in rkey]
+
     h.write([0,commands.U2F_CONFIG_LOAD_TRANS_KEY]+wkey)
     data = read_n_tries(h,5,64,1000)
     if data[1] != 1:
@@ -220,10 +247,13 @@ def do_configure(h,pemkey,output):
     rkey = get_write_mask(''.join([chr(x) for x in rkey]))
 
 
+    print('wkey: '+repr(binascii.unhexlify(wkey)))
+    print('wkey: '+repr([ord(x) for x in binascii.unhexlify(wkey)]))
     h.write([0,commands.U2F_CONFIG_LOAD_WRITE_KEY]+[ord(x) for x in binascii.unhexlify(wkey)])
     data = read_n_tries(h,5,64,1000)
     if data[1] != 1:
         die('failed loading write key')
+
 
     attestkey = ecdsa.SigningKey.from_pem(open(pemkey).read())
     if len(attestkey.to_string()) != 32:
@@ -237,7 +267,7 @@ def do_configure(h,pemkey,output):
 
 
     print('writing keys to ', output)
-    open(output,'w+').write(wkey + '\n' + rkey)
+    open(output,'w+').write(wkey + '\n' + rkey + '\n')
 
     print( 'Done.  Putting device in bootloader mode.')
     h.write([0,commands.U2F_CONFIG_BOOTLOADER])
@@ -336,12 +366,12 @@ if __name__ == '__main__':
         SN = sys.argv[sys.argv.index('-s') + 1]
 
     if action == 'configure':
-        h = open_u2f(SN)
-        if len(sys.argv) not in [4,6]:
+        reuse_keys = '--reuse-keys' in sys.argv
+        if len(sys.argv) not in [4,6] and not reuse_keys:
             print( 'error: need ecc private key and an output file')
-            h.close()
             sys.exit(1)
-        do_configure(h, sys.argv[2],sys.argv[3])
+        h = open_u2f(SN)
+        do_configure(h, sys.argv[2],sys.argv[3], reuse_keys)
     elif action == 'rng':
         h = open_u2f(SN)
         do_rng(h)
