@@ -26,6 +26,10 @@ Build (Ubuntu 18.04)
 6. Register KEIL compiler.
 7. Build the source.
 
+Usage (Ubuntu 18.04)
+-------
+Udev rules might be required to use the device without administrator privileges. Please run `./install_rules.sh` script, which will copy rules file to system directory on Ubuntu. For other OSes - please check the proper path and issue the copying manually.
+
 Security Overview
 -----------------
 
