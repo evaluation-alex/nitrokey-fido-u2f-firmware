@@ -181,7 +181,7 @@ def do_configure(h,pemkey,output, reuse=False):
         print('Device is configured.')
     else:
         print(repr(data))
-        die('Device not configured')
+        die('Device not configured. Try to power-cycle (e.g. reinsert) the device.')
 
     time.sleep(0.250)
 
