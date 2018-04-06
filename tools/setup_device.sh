@@ -51,9 +51,9 @@ fi
 echo "configuring..."
 
 if [[ -n $SN_setup ]] ; then
-    client.py configure $attest_priv pubkey.hex -s $SN_setup #>/dev/null
+    client.py configure $attest_priv pubkey.hex -s $SN_setup --reuse-keys #>/dev/null
 else
-    client.py configure $attest_priv pubkey.hex #>/dev/null
+    client.py configure $attest_priv pubkey.hex --reuse-keys #>/dev/null
 fi
 
 while [[ "$?" -ne "0" ]] ; do
