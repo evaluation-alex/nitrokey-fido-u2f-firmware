@@ -69,11 +69,17 @@ void u2f_response_start()
 int8_t u2f_get_user_feedback()
 {
 	uint32_t t;
-	u2f_delay(1);
-	while(IsButtonPressed()){                         // Wait to release button
+
+	BUTTON_RESET_ON();                                // Clear ghost touches
+	u2f_delay(6);
+	BUTTON_RESET_OFF();
+	t = get_ms();
+	while (IS_BUTTON_PRESSED()) {                     // Wait to release button
+		if (get_ms() - t > U2F_MS_USER_INPUT_WAIT) {  // 3 secs timeout
+			return 1;
+		}
 		watchdog();
 	}
-	t = get_ms();
 	LedBlink(LED_BLINK_NUM_INF, 375);
 	while(!IsButtonPressed())                         // Wait to push button
 	{

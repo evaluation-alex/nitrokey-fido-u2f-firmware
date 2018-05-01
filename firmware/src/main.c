@@ -125,11 +125,12 @@ int16_t main(void) {
 
 	if (RSTSRC & RSTSRC_WDTRSF__SET)
 	{
-		set_app_error(ERROR_DAMN_WATCHDOG);
+		//set_app_error(ERROR_DAMN_WATCHDOG);
 	}
 
 	run_tests();
 	ButtonState = BST_UNPRESSED;
+	BUTTON_RESET_OFF();
 	LedOff();
 	atecc_setup_init(appdata.tmp);
 
@@ -198,17 +199,13 @@ int16_t main(void) {
 				watchdog();
 			}
 #endif
-			error = 0;
-			while(!ms_since(ms_heart,500))
-			{
-				watchdog();
-			}
+            while (1) {}                             // Device reset
 		}
 	}
 }
 
 
-void TaskButton (void) {                       // Requires at least a 750ms long button press to register a valid user button press
+void TaskButton (void) {                              // Requires at least a 750ms long button press to register a valid user button press
 	if (IS_BUTTON_PRESSED()) {                        // Button's physical state: pressed
 		switch (ButtonState) {                        // Handle press phase
 		    case BST_UNPRESSED: {                     // It happened at this moment
