@@ -73,6 +73,7 @@ static void init(struct APP_DATA* ap)
 	u2f_hid_init();
 	smb_init();
 	atecc_idle();
+	eeprom_init();
 
 	state = APP_NOTHING;
 	error = ERROR_NOTHING;
@@ -121,12 +122,14 @@ int16_t main(void) {
 	IE_EA = 1;
 	watchdog();
 
-	u2f_prints("U2F ZERO\r\n");
+
 
 	if (RSTSRC & RSTSRC_WDTRSF__SET)
 	{
-		//set_app_error(ERROR_DAMN_WATCHDOG);
+		//error = ERROR_DAMN_WATCHDOG;
+		u2f_prints("r");
 	}
+	u2f_prints("U2F ZERO\r\n");
 
 	run_tests();
 	ButtonState = BST_UNPRESSED;
@@ -176,9 +179,9 @@ int16_t main(void) {
 		{
 			u2f_printx("error: ", 1, (uint16_t)error);
 #ifdef U2F_BLINK_ERRORS
-			for (ii=0; ii < 8; ii++)
+			for (ms_grad=0; ms_grad < 8; ms_grad++)
 			{
-				if (error & (1<<ii))
+				if (error & (1<<ms_grad))
 				{
 					rgb_hex(U2F_DEFAULT_COLOR_INPUT_SUCCESS);
 				}
@@ -199,7 +202,10 @@ int16_t main(void) {
 				watchdog();
 			}
 #endif
-            while (1) {}                             // Device reset
+
+			// wait for watchdog to reset
+			while(1)
+				;
 		}
 	}
 }
@@ -266,4 +272,3 @@ void TaskLedBlink (void) {
 		}
 	}
 }
-
