@@ -47,12 +47,6 @@ static uint8_t* resbuf = (uint8_t*)&res;
 static uint8_t resseq = 0;
 static uint8_t serious = 0;
 
-#ifndef ATECC_SETUP_DEVICE
-void u2f_init()
-{
-
-}
-#endif
 
 void u2f_response_writeback(uint8_t * buf, uint16_t len)
 {
@@ -104,13 +98,20 @@ int8_t u2f_get_user_feedback()
 	return 0;
 }
 
+#ifdef ATECC_SETUP_DEVICE
+#define STATIC_IN_SETUP static
+#else
+#define STATIC_IN_SETUP
+#endif
+
+
 static uint8_t shabuf[70];
 static uint8_t shaoffset = 0;
-uint8_t SHA_FLAGS = 0;
-uint8_t SHA_HMAC_KEY = 0;
+STATIC_IN_SETUP uint8_t SHA_FLAGS = 0;
+STATIC_IN_SETUP uint8_t SHA_HMAC_KEY = 0;
 static struct atecc_response res_digest;
 
-void u2f_sha256_start()
+STATIC_IN_SETUP void u2f_sha256_start()
 {
 	shaoffset = 0;
 	atecc_send_recv(ATECC_CMD_SHA,
@@ -120,7 +121,7 @@ void u2f_sha256_start()
 }
 
 
-void u2f_sha256_update(uint8_t * buf, uint8_t len)
+STATIC_IN_SETUP void u2f_sha256_update(uint8_t * buf, uint8_t len)
 {
 	uint8_t i = 0;
 	watchdog();
@@ -138,7 +139,7 @@ void u2f_sha256_update(uint8_t * buf, uint8_t len)
 }
 
 
-void u2f_sha256_finish()
+STATIC_IN_SETUP void u2f_sha256_finish()
 {
 	if (SHA_FLAGS == ATECC_SHA_START) SHA_FLAGS = ATECC_SHA_END;
 	atecc_send_recv(ATECC_CMD_SHA,
