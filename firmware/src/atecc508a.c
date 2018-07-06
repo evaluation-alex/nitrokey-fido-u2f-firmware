@@ -36,6 +36,7 @@
 
 #include "bsp.h"
 
+#include "u2f.h"
 
 
 int8_t atecc_send(uint8_t cmd, uint8_t p1, uint16_t p2,
@@ -212,46 +213,8 @@ int8_t atecc_write_eeprom(uint8_t base, uint8_t offset, uint8_t* srcbuf, uint8_t
 
 static uint8_t shabuf[70];
 static uint8_t shaoffset = 0;
-uint8_t SHA_FLAGS = 0;
-uint8_t SHA_HMAC_KEY = 0;
 static struct atecc_response res_digest;
 
-void u2f_sha256_start()
-{
-	shaoffset = 0;
-	atecc_send_recv(ATECC_CMD_SHA,
-			SHA_FLAGS, SHA_HMAC_KEY,NULL,0,
-			shabuf, sizeof(shabuf), NULL);
-	SHA_HMAC_KEY = 0;
-}
-
-
-void u2f_sha256_update(uint8_t * buf, uint8_t len)
-{
-	uint8_t i = 0;
-	watchdog();
-	while(len--)
-	{
-		shabuf[shaoffset++] = *buf++;
-		if (shaoffset == 64)
-		{
-			atecc_send_recv(ATECC_CMD_SHA,
-					ATECC_SHA_UPDATE, 64,shabuf,64,
-					shabuf, sizeof(shabuf), NULL);
-			shaoffset = 0;
-		}
-	}
-}
-
-
-void u2f_sha256_finish()
-{
-	if (SHA_FLAGS == 0) SHA_FLAGS = ATECC_SHA_END;
-	atecc_send_recv(ATECC_CMD_SHA,
-			SHA_FLAGS, shaoffset,shabuf,shaoffset,
-			shabuf, sizeof(shabuf), &res_digest);
-	SHA_FLAGS = 0;
-}
 
 static uint8_t get_signature_length(uint8_t * sig)
 {

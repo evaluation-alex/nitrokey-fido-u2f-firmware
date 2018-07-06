@@ -47,11 +47,12 @@ static uint8_t* resbuf = (uint8_t*)&res;
 static uint8_t resseq = 0;
 static uint8_t serious = 0;
 
-
+#ifndef ATECC_SETUP_DEVICE
 void u2f_init()
 {
 
 }
+#endif
 
 void u2f_response_writeback(uint8_t * buf, uint16_t len)
 {
