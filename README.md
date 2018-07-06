@@ -3,7 +3,7 @@
 
 ![Nitrokey Fido U2F Rev.5](nku2f.jpg)
 
-Nitrokey FIDO U2F is based on [U2F Zero]((https://github.com/conorpp/u2f-zero/), an open source, open hardware U2F token for 2 factor authentication.  It is implemented securely and works with Google accounts, Github, Duo, and anything else supporting U2F. Uses key derivation and has no limit on registrations.
+Nitrokey FIDO U2F is based on [U2F Zero](https://github.com/conorpp/u2f-zero/), an open source, open hardware U2F token for 2 factor authentication.  It is implemented securely and works with Google accounts, Github, Duo, and anything else supporting U2F. Uses key derivation and has no limit on registrations.
 
 Hardware files are provided [here](https://github.com/Nitrokey/nitrokey-fido-u2f-hardware). Nitrokey's device differs in using a touch button instead of a regular one, as well as using smaller PCB and bigger flash MCU.
 
