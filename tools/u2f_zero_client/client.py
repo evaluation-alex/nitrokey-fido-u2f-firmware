@@ -80,9 +80,9 @@ class commands:
 if len(sys.argv) not in [2,3,4,5,6]:
     print('usage: %s <action> [<arguments>] [-s serial-number]' % sys.argv[0])
     print('actions: ')
-    print("""   configure <ecc-private-key> <output-file> [--reuse-keys]: setup the device configuration.  Specify ECC P-256 private
-                                                           key for token attestation.  Specify temporary output file for
-                                                           generated keys. Reuses r/w keys if --reuse-keys is specified.""")
+    print("""   configure <ecc-private-key> <output-file> [--reuse-keys]: setup the device configuration.
+    Specify ECC P-256 private key for token attestation.  Specify temporary output file for generated
+    keys. Reuses r/w keys if --reuse-keys is specified.""")
     print('     rng: Continuously dump random numbers from the devices hardware RNG.')
     print('     seed: update the hardware RNG seed with input from stdin')
     print('     wipe: wipe all registered keys on U2F Zero.  Must also press button 5 times.  Not reversible.')
@@ -439,11 +439,13 @@ def do_ping(h, num):
             break
     
     # Check ping data (compare sent/received message payloads)
-    if cmp(data_req, data_resp) == 0:
+    # cut response to compare only sent data
+    data_resp = data_resp[:len(data_req)]
+    if data_req == data_resp:
         print('Ping OK')
     else:
         print('Ping ERR')
-
+        print('{} {}'.format(len(data_req), len(data_resp)))
 
 
 if __name__ == '__main__':
