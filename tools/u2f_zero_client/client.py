@@ -439,11 +439,13 @@ def do_ping(h, num):
             break
     
     # Check ping data (compare sent/received message payloads)
-    if cmp(data_req, data_resp) == 0:
+    # cut response to compare only sent data
+    data_resp = data_resp[:len(data_req)]
+    if data_req == data_resp:
         print('Ping OK')
     else:
         print('Ping ERR')
-
+        print('{} {}'.format(len(data_req), len(data_resp)))
 
 
 if __name__ == '__main__':
