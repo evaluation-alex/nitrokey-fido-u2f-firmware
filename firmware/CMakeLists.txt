@@ -17,9 +17,12 @@ include_directories(lib/efm8_assert)
 include_directories(lib/efm8_usb/inc)
 include_directories(lib/efm8ub1/peripheralDrivers/inc)
 include_directories(tests)
+
+# Requires a full SDK dir copy from Simplicity Studio v3
 include_directories(../sdks/si8051/v3/Device/shared/si8051Base)
 include_directories(../sdks/si8051/v3/Device/EFM8UB1/inc)
 
+# Set any flag, just to make it build (for now)
 add_definitions(-D__GNUC__ -D__ARM_ARCH=7 -D__ARMEL__)
 
 add_executable(firmware

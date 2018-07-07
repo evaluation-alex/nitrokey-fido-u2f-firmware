@@ -1,3 +1,5 @@
+# Downloaded from
+# https://github.com/Kitware/CMake/blob/master/Modules/Platform/Generic-SDCC-C.cmake
 
 # This file implements basic support for sdcc (http://sdcc.sourceforge.net/)
 # a free C compiler for 8 and 16 bit microcontrollers.
