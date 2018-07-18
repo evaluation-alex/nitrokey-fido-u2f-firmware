@@ -459,7 +459,7 @@ if __name__ == '__main__':
         SN = sys.argv[sys.argv.index('-s') + 1]
 
     if action == 'configure':
-        reuse_keys = '--reuse-keys' in sys.argv
+        reuse_keys = '--no-reuse-keys' not in sys.argv
         if len(sys.argv) not in [4,6] and not reuse_keys:
             print( 'error: need ecc private key and an output file')
             sys.exit(1)
