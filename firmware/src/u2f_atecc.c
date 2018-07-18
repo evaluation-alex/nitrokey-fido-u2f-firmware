@@ -98,55 +98,6 @@ int8_t u2f_get_user_feedback()
 	return 0;
 }
 
-#ifdef ATECC_SETUP_DEVICE
-#define STATIC_IN_SETUP static
-#else
-#define STATIC_IN_SETUP
-#endif
-
-
-static uint8_t shabuf[70];
-static uint8_t shaoffset = 0;
-STATIC_IN_SETUP uint8_t SHA_FLAGS = 0;
-STATIC_IN_SETUP uint8_t SHA_HMAC_KEY = 0;
-static struct atecc_response res_digest;
-
-STATIC_IN_SETUP void u2f_sha256_start()
-{
-	shaoffset = 0;
-	atecc_send_recv(ATECC_CMD_SHA,
-			SHA_FLAGS, SHA_HMAC_KEY,NULL,0,
-			shabuf, sizeof(shabuf), NULL);
-	SHA_HMAC_KEY = 0;
-}
-
-
-STATIC_IN_SETUP void u2f_sha256_update(uint8_t * buf, uint8_t len)
-{
-	uint8_t i = 0;
-	watchdog();
-	while(len--)
-	{
-		shabuf[shaoffset++] = *buf++;
-		if (shaoffset == 64)
-		{
-			atecc_send_recv(ATECC_CMD_SHA,
-					ATECC_SHA_UPDATE, 64,shabuf,64,
-					shabuf, sizeof(shabuf), NULL);
-			shaoffset = 0;
-		}
-	}
-}
-
-
-STATIC_IN_SETUP void u2f_sha256_finish()
-{
-	if (SHA_FLAGS == ATECC_SHA_START) SHA_FLAGS = ATECC_SHA_END;
-	atecc_send_recv(ATECC_CMD_SHA,
-			SHA_FLAGS, shaoffset,shabuf,shaoffset,
-			shabuf, sizeof(shabuf), &res_digest);
-	SHA_FLAGS = ATECC_SHA_START;
-}
 
 static int atecc_prep_encryption()
 {
@@ -170,28 +121,6 @@ static int atecc_prep_encryption()
 	return 0;
 }
 
-static void compute_key_hash(uint8_t * key, uint8_t * mask)
-{
-	// key must start with 4 zeros
-	memset(appdata.tmp,0,28);
-	memmove(appdata.tmp + 28, key, 36);
-
-	u2f_sha256_start();
-
-	u2f_sha256_update(mask,32);
-
-
-	appdata.tmp[0] = ATECC_CMD_PRIVWRITE;
-	appdata.tmp[1] = ATECC_PRIVWRITE_ENC;
-	appdata.tmp[2] = 2;
-	appdata.tmp[3] = 0;
-	appdata.tmp[4] = 0xee;
-	appdata.tmp[5] = 0x01;
-	appdata.tmp[6] = 0x23;
-
-	u2f_sha256_update(appdata.tmp,28 + 36);
-	u2f_sha256_finish();
-}
 
 static int atecc_privwrite(int keyslot, uint8_t * key, uint8_t * mask, uint8_t * digest)
 {
@@ -272,7 +201,7 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 		private_key[i] ^= RMASK[i];
 	}
 	watchdog();
-	compute_key_hash(private_key,  WMASK);
+	compute_key_hash(private_key,  WMASK, U2F_TEMP_KEY_SLOT);
 	memmove(handle+4, res_digest.buf, 32);  // size of key handle must be 36+8
 
 
