@@ -27,7 +27,7 @@
 #ifndef APP_H_
 #define APP_H_
 
-#include <SI_EFM8UB1_Register_Enums.h>
+#include <SI_EFM8UB3_Register_Enums.h>
 #include <stdarg.h>
 #include "u2f_hid.h"
 
