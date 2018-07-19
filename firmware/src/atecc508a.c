@@ -585,9 +585,10 @@ void atecc_setup_device(struct config_msg * msg)
 					break;
 				}
 
+
 #ifndef _PRODUCTION_RELEASE
 			u2f_prints("master key: "); dump_hex(trans_key,32);
-			memmove(usbres.buf+1, trans_key, sizeof(trans_key));
+			memmove(usbres.buf+1, trans_key, 32);
 #endif
 			if(memcmp(test_sequence, trans_key, sizeof(test_sequence)) == 0){
 				usbres.buf[0] = 0; //failed, stage 1, sequence generation
@@ -606,8 +607,8 @@ void atecc_setup_device(struct config_msg * msg)
 				u2f_prints("writing master key failed\r\n");
 			}
 
-			memset(appdata.tmp,0,32);
-			memset(trans_key,0,32);
+			memset(appdata.tmp,0,sizeof(appdata.tmp));
+			memset(trans_key,0,sizeof(trans_key));
 		}
 			break;
 
