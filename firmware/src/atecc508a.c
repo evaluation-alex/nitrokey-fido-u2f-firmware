@@ -423,6 +423,8 @@ static void atecc_setup_config(uint8_t* buf)
 {
 	uint8_t i;
 
+//	struct atecc_slot_config c;
+
 
 	uint8_t * slot_configs = "\x83\x71\x81\x01\x83\x71\xC1\x01\x83\x71"
 							 "\x83\x71\x83\x71\xC1\x71\x01\x01\x83\x71"
@@ -520,7 +522,6 @@ void atecc_test_signature(int keyslot, uint8_t * buf)
 	dump_signature_der(res.buf);
 }
 #endif
-
 
 
 void atecc_setup_init(uint8_t * buf)
@@ -660,6 +661,15 @@ void atecc_setup_device(struct config_msg * msg)
 			u2f_prints("U2F_CONFIG_LOAD_WRITE_KEY\r\n");
 			memmove(write_key,msg->buf,36);
 			usbres.buf[0] = 1;
+
+			if(atecc_send_recv(ATECC_CMD_WRITE,
+				ATECC_RW_DATA|ATECC_RW_EXT,
+				ATECC_EEPROM_DATA_SLOT(U2F_WKEY_KEY_SLOT), write_key, 32,
+				buf, sizeof(buf), &res) != 0)
+			{
+				usbres.buf[0] = 2; //failed, stage 2, key writing
+				u2f_prints("writing write-key failed\r\n");
+			}
 
 			break;
 		case U2F_CONFIG_LOAD_ATTEST_KEY:
