@@ -649,6 +649,7 @@ void atecc_setup_device(struct config_msg * msg)
 			}
 
 			break;
+#ifdef U2F_USING_BOOTLOADER
 		case U2F_CONFIG_BOOTLOADER:
 			u2f_prints("U2F_CONFIG_BOOTLOADER\r\n");
 
@@ -670,6 +671,7 @@ void atecc_setup_device(struct config_msg * msg)
 				 RSTSRC = RSTSRC_SWRSF__SET | RSTSRC_PORSF__SET;
 			}
 			break;
+#endif
 		default:
 			u2f_printb("invalid command: ",1,msg->cmd);
 			usbres.buf[0] = 0;
