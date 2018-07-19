@@ -219,6 +219,10 @@ void u2f_sha256_finish()
 	SHA_FLAGS = 0;
 }
 
+/**
+ * Makes hash of PRIVWRITE(slot) command's payload, key and mask
+ * out: internal ATECC's TempKey buffer
+ */
 void compute_key_hash(uint8_t * key, uint8_t * mask, int slot)
 {
 	// key must start with 4 zeros
@@ -657,6 +661,7 @@ void atecc_setup_device(struct config_msg * msg)
 		case U2F_CONFIG_LOAD_ATTEST_KEY:
 			u2f_prints("U2F_CONFIG_LOAD_ATTEST_KEY\r\n");
 
+			//reusing trans_key buffer for the attestation key upload
 			memset(trans_key,0,36);
 			memmove(trans_key+4,msg->buf,32);
 			usbres.buf[0] = 1;
@@ -666,6 +671,9 @@ void atecc_setup_device(struct config_msg * msg)
 
 			if (atecc_privwrite(U2F_ATTESTATION_KEY_SLOT, trans_key, write_key, res_digest.buf) != 0)
 			{
+//				The slot indicated by this command must be configured via KeyConfig.Private to contain an ECC private
+//				key, and SlotConfig.IsSecret must be set to one, or else this command will return an error. If the slot is
+//				individually locked using SlotLocked, then this command will also return an error.
 				u2f_prints("load attest key failed\r\n");
 				usbres.buf[0] = 0;
 			}
