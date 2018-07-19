@@ -561,26 +561,47 @@ void atecc_setup_device(struct config_msg * msg)
 			break;
 
 		case U2F_CONFIG_LOAD_TRANS_KEY:
+		{
+			const uint8_t test_sequence[] = {0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00};
 			u2f_prints("U2F_CONFIG_LOAD_TRANS_KEY\r\n");
 
 
+			if (atecc_send_recv(ATECC_CMD_RNG,ATECC_RNG_P1,ATECC_RNG_P2,
+							NULL, 0,
+							appdata.tmp,
+							sizeof(appdata.tmp), &res) == 0 )
+				{
+					memmove(trans_key, res.buf, 32);
+				} else {
+					usbres.buf[0] = 0; //failed, stage 1, sequence generation
+					u2f_prints("generating master key failed\r\n");
+					break;
+				}
 
-			memmove(trans_key,msg->buf,32);
+#ifndef _PRODUCTION_RELEASE
 			u2f_prints("master key: "); dump_hex(trans_key,32);
+			memmove(usbres.buf+1, trans_key, sizeof(trans_key));
+#endif
+			if(memcmp(test_sequence, trans_key, sizeof(test_sequence)) == 0){
+				usbres.buf[0] = 0; //failed, stage 1, sequence generation
+				u2f_prints("generating master key failed - test sequence detected, "
+						"lock configuration beforehand\r\n");
+				break;
+			}
 
-			usbres.buf[0] = 1;
+			usbres.buf[0] = 1; //success
 
-			if( atecc_send_recv(ATECC_CMD_WRITE,
+			if(atecc_send_recv(ATECC_CMD_WRITE,
 					ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(1), trans_key, 32,
 					buf, sizeof(buf), &res) != 0)
 			{
-				usbres.buf[0] = 0;
+				usbres.buf[0] = 2; //failed, stage 2, key writing
 				u2f_prints("writing master key failed\r\n");
 			}
 
 			memset(appdata.tmp,0,32);
 			memset(trans_key,0,32);
-
+		}
 			break;
 
 		case U2F_CONFIG_IS_BUILD:
