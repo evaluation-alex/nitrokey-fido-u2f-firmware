@@ -73,7 +73,9 @@ static void init(struct APP_DATA* ap)
 	u2f_hid_init();
 	smb_init();
 	atecc_idle();
+#ifdef _SECURE_EEPROM
 	eeprom_init();
+#endif
 
 	state = APP_NOTHING;
 	error = ERROR_NOTHING;

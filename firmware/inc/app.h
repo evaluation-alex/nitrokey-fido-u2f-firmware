@@ -53,14 +53,25 @@
 // comment out this if using bootloader
 //#define U2F_USING_BOOTLOADER
 
-// Uncomment this to make configuration firmware
+// Uncomment this to make configuration firmware (stage 1 firmware)
 //#define ATECC_SETUP_DEVICE
+
+// Uncomment to make a production firmware release, with selected flags
+//#define _PRODUCTION_RELEASE
 
 // Touch button test function
 //#define __BUTTON_TEST__                             // Button drives directly the LED. Minimal required press time is determined by BUTTON_MIN_PRESS_T_MS
 
 //#define U2F_PRINT
 //#define U2F_BLINK_ERRORS
+
+#ifdef _PRODUCTION_RELEASE
+	#undef U2F_PRINT
+	#undef U2F_BLINK_ERRORS
+	#undef __BUTTON_TEST__
+	#undef U2F_USING_BOOTLOADER
+	#define _SECURE_EEPROM
+#endif
 
 // efm8ub1 application eeprom memory mappings
 #define U2F_KEY_HEADER_ADDR		0xF800
