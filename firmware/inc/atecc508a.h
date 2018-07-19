@@ -164,6 +164,8 @@ extern void u2f_sha256_start  ();
 extern void u2f_sha256_update (uint8_t * buf, uint8_t len);
 extern void u2f_sha256_finish ();
 extern void compute_key_hash  (uint8_t * key, uint8_t * mask, int slot);
+extern int atecc_prep_encryption();
+extern int atecc_privwrite(uint16_t keyslot, uint8_t * key, uint8_t * mask, uint8_t * digest);
 
 void atecc_idle();
 void atecc_wake();

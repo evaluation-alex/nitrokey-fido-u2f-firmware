@@ -243,6 +243,54 @@ void compute_key_hash(uint8_t * key, uint8_t * mask, int slot)
 }
 
 
+int atecc_prep_encryption()
+{
+	struct atecc_response res;
+	memset(appdata.tmp,0,32);
+	if( atecc_send_recv(ATECC_CMD_NONCE,ATECC_NONCE_TEMP_UPDATE,0,
+								appdata.tmp, 32,
+								appdata.tmp, 40, &res) != 0 )
+	{
+		u2f_prints("pass through to tempkey failed\r\n");
+		return -1;
+	}
+	if( atecc_send_recv(ATECC_CMD_GENDIG,
+			ATECC_RW_DATA, U2F_MASTER_KEY_SLOT, NULL, 0,
+			appdata.tmp, 40, &res) != 0)
+	{
+		u2f_prints("GENDIG failed\r\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+int atecc_privwrite(uint16_t keyslot, uint8_t * key, uint8_t * mask, uint8_t * digest)
+{
+	struct atecc_response res;
+	uint8_t i;
+
+
+
+	atecc_prep_encryption();
+
+	for (i=0; i<36; i++)
+	{
+		appdata.tmp[i] = key[i] ^ mask[i];
+	}
+	memmove(appdata.tmp+36, digest, 32);
+
+	if( atecc_send_recv(ATECC_CMD_PRIVWRITE,
+			ATECC_PRIVWRITE_ENC, keyslot, appdata.tmp, 68,
+			appdata.tmp, 40, &res) != 0)
+	{
+		u2f_prints("PRIVWRITE failed\r\n");
+		return -1;
+	}
+	return 0;
+}
+
+
 #ifdef ATECC_SETUP_DEVICE
 
 int8_t atecc_write_eeprom(uint8_t base, uint8_t offset, uint8_t* srcbuf, uint8_t len)
@@ -466,53 +514,6 @@ void atecc_test_signature(int keyslot, uint8_t * buf)
 	dump_signature_der(res.buf);
 }
 
-
-int atecc_prep_encryption()
-{
-	struct atecc_response res;
-	memset(appdata.tmp,0,32);
-	if( atecc_send_recv(ATECC_CMD_NONCE,ATECC_NONCE_TEMP_UPDATE,0,
-								appdata.tmp, 32,
-								appdata.tmp, 40, &res) != 0 )
-	{
-		u2f_prints("pass through to tempkey failed\r\n");
-		return -1;
-	}
-	if( atecc_send_recv(ATECC_CMD_GENDIG,
-			ATECC_RW_DATA, U2F_MASTER_KEY_SLOT, NULL, 0,
-			appdata.tmp, 40, &res) != 0)
-	{
-		u2f_prints("GENDIG failed\r\n");
-		return -1;
-	}
-
-	return 0;
-}
-
-int atecc_privwrite(uint16_t keyslot, uint8_t * key, uint8_t * mask, uint8_t * digest)
-{
-	struct atecc_response res;
-	uint8_t i;
-
-
-
-	atecc_prep_encryption();
-
-	for (i=0; i<36; i++)
-	{
-		appdata.tmp[i] = key[i] ^ mask[i];
-	}
-	memmove(appdata.tmp+36, digest, 32);
-
-	if( atecc_send_recv(ATECC_CMD_PRIVWRITE,
-			ATECC_PRIVWRITE_ENC, keyslot, appdata.tmp, 68,
-			appdata.tmp, 40, &res) != 0)
-	{
-		u2f_prints("PRIVWRITE failed\r\n");
-		return -1;
-	}
-	return 0;
-}
 
 
 

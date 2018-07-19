@@ -99,53 +99,6 @@ int8_t u2f_get_user_feedback()
 }
 
 
-static int atecc_prep_encryption()
-{
-	struct atecc_response res;
-	memset(appdata.tmp,0,32);
-	if( atecc_send_recv(ATECC_CMD_NONCE,ATECC_NONCE_TEMP_UPDATE,0,
-								appdata.tmp, 32,
-								appdata.tmp, 40, &res) != 0 )
-	{
-		u2f_prints("pass through to tempkey failed\r\n");
-		return -1;
-	}
-	if( atecc_send_recv(ATECC_CMD_GENDIG,
-			ATECC_RW_DATA, U2F_MASTER_KEY_SLOT, NULL, 0,
-			appdata.tmp, 40, &res) != 0)
-	{
-		u2f_prints("GENDIG failed\r\n");
-		return -1;
-	}
-
-	return 0;
-}
-
-
-static int atecc_privwrite(int keyslot, uint8_t * key, uint8_t * mask, uint8_t * digest)
-{
-	struct atecc_response res;
-	uint8_t i;
-
-	atecc_prep_encryption();
-
-	for (i=0; i<36; i++)
-	{
-		appdata.tmp[i] = key[i] ^ mask[i];
-	}
-	memmove(appdata.tmp+36, digest, 32);
-
-	if( atecc_send_recv(ATECC_CMD_PRIVWRITE,
-			ATECC_PRIVWRITE_ENC, keyslot, appdata.tmp, 68,
-			appdata.tmp, 40, &res) != 0)
-	{
-		u2f_prints("PRIVWRITE failed\r\n");
-		return -1;
-	}
-	return 0;
-}
-
-
 int8_t u2f_ecdsa_sign(uint8_t * dest, uint8_t * handle, uint8_t * appid)
 {
 	struct atecc_response res;

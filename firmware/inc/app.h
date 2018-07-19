@@ -185,6 +185,7 @@ void u2f_init();
 void atecc_setup_device(struct config_msg * msg);
 void atecc_setup_init(uint8_t * buf);
 
+
 void u2f_config_request();
 
 #define U2F_HID_DISABLE
