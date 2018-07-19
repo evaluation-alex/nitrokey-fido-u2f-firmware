@@ -62,7 +62,7 @@
 // Touch button test function
 //#define __BUTTON_TEST__                             // Button drives directly the LED. Minimal required press time is determined by BUTTON_MIN_PRESS_T_MS
 
-//#define U2F_PRINT
+#define U2F_PRINT
 //#define U2F_BLINK_ERRORS
 
 #ifdef _PRODUCTION_RELEASE
