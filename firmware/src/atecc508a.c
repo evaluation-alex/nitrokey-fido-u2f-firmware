@@ -470,6 +470,8 @@ static void atecc_setup_config(uint8_t* buf)
 {
 	uint8_t i;
 
+//	struct atecc_slot_config c;
+
 
 	uint8_t * slot_configs = "\x83\x71"
 							 "\x81\x01"
@@ -593,7 +595,6 @@ void atecc_test_signature(int keyslot, uint8_t * buf)
 #endif
 
 
-
 void atecc_setup_init(uint8_t * buf)
 {
 	// 13s watchdog
@@ -608,6 +609,51 @@ void atecc_setup_init(uint8_t * buf)
 	{
 		u2f_prints("already locked\r\n");
 	}
+
+}
+
+uint8_t generate_random_data(uint8_t *out_buf){
+	struct atecc_response res;
+	if (atecc_send_recv(ATECC_CMD_RNG,ATECC_RNG_P1,ATECC_RNG_P2,
+					NULL, 0,
+					appdata.tmp,
+					sizeof(appdata.tmp), &res) == 0 )
+		{
+			memmove(out_buf, appdata.tmp, 32);
+			return 0;
+		}
+	return 1;
+}
+
+void generate_device_key(uint8_t *input, uint8_t *output){
+	uint8_t buf[40];
+	struct atecc_response res;
+
+	u2f_prints("generating device key ... ");
+
+	if (generate_random_data(trans_key) == 0){
+		u2f_prints("succeed\r\n");
+		output[0] = 1;
+	} else {
+		u2f_prints("failed\r\n");
+		output[0] = 0;
+		return;
+	}
+
+#ifndef _PRODUCTION_RELEASE
+	u2f_prints("device key: "); dump_hex(trans_key,32);
+	memmove(output+1, trans_key, 32);
+#endif
+
+
+	if(atecc_send_recv(ATECC_CMD_WRITE,
+		ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT), trans_key, 32,
+		buf, sizeof(buf), &res) != 0)
+	{
+		output[0] = 2; //failed, stage 2, key writing
+		u2f_prints("writing device key failed\r\n");
+	}
+	u2f_prints("writing device key succeed\r\n");
 
 }
 
@@ -659,36 +705,10 @@ void atecc_setup_device(struct config_msg * msg)
 
 		case U2F_CONFIG_LOAD_TRANS_KEY:
 		{
-			const uint8_t test_sequence[] = {0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00};
 			u2f_prints("U2F_CONFIG_LOAD_TRANS_KEY\r\n");
 
-			u2f_prints("generating master key\r\n");
-			if (atecc_send_recv(ATECC_CMD_RNG,ATECC_RNG_P1,ATECC_RNG_P2,
-							NULL, 0,
-							appdata.tmp,
-							sizeof(appdata.tmp), &res) == 0 )
-				{
-					u2f_prints("generated master key\r\n");
-					memmove(trans_key, res.buf, 32);
-				} else {
-					usbres.buf[0] = 0; //failed, stage 1, sequence generation
-					u2f_prints("generating master key failed\r\n");
-					break;
-				}
-
-
-#ifndef _PRODUCTION_RELEASE
-			u2f_prints("master key: "); dump_hex(trans_key,32);
-			memmove(usbres.buf+1, trans_key, 32);
-#endif
-			if(memcmp(test_sequence, trans_key, sizeof(test_sequence)) == 0){
-				usbres.buf[0] = 0; //failed, stage 1, sequence generation
-				u2f_prints("generating master key failed - test sequence detected, "
-						"lock configuration beforehand\r\n");
-				break;
-			}
-
 			usbres.buf[0] = 1; //success
+			memmove(trans_key, msg->buf, 32);
 
 			if(atecc_send_recv(ATECC_CMD_WRITE,
 					ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_MASTER_KEY_SLOT), trans_key, 32,
@@ -700,8 +720,8 @@ void atecc_setup_device(struct config_msg * msg)
 
 			memset(appdata.tmp,0,sizeof(appdata.tmp));
 			memset(trans_key,0,sizeof(trans_key));
-		}
 			break;
+		}
 
 		case U2F_CONFIG_IS_BUILD:
 			u2f_prints("U2F_CONFIG_IS_BUILD\r\n");
@@ -752,7 +772,10 @@ void atecc_setup_device(struct config_msg * msg)
 			memmove(write_key,msg->buf,36);
 			usbres.buf[0] = 1;
 
+			generate_device_key(msg->buf, usbres.buf);
+
 			break;
+
 		case U2F_CONFIG_LOAD_ATTEST_KEY:
 			u2f_prints("U2F_CONFIG_LOAD_ATTEST_KEY\r\n");
 
