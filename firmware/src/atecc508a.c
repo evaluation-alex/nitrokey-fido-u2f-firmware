@@ -600,7 +600,7 @@ void atecc_setup_device(struct config_msg * msg)
 			usbres.buf[0] = 1; //success
 
 			if(atecc_send_recv(ATECC_CMD_WRITE,
-					ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(1), trans_key, 32,
+					ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_MASTER_KEY_SLOT), trans_key, 32,
 					buf, sizeof(buf), &res) != 0)
 			{
 				usbres.buf[0] = 2; //failed, stage 2, key writing
