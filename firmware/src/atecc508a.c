@@ -625,18 +625,7 @@ void atecc_setup_device(struct config_msg * msg)
 				u2f_prints("data already locked\r\n");
 			}
 			break;
-		case U2F_CONFIG_GENKEY:
-			u2f_prints("U2F_CONFIG_GENKEY\r\n");
 
-			atecc_send_recv(ATECC_CMD_GENKEY,
-					ATECC_GENKEY_PRIVATE, U2F_ATTESTATION_KEY_SLOT, NULL, 0,
-					appdata.tmp, sizeof(appdata.tmp), &res);
-
-			u2f_printb("key is bytes ",1,res.len);
-
-			memmove((uint8_t*)&usbres, res.buf, 64);
-
-			break;
 		case U2F_CONFIG_LOAD_WRITE_KEY:
 			u2f_prints("U2F_CONFIG_LOAD_WRITE_KEY\r\n");
 			memmove(write_key,msg->buf,36);
