@@ -131,7 +131,7 @@ int16_t main(void) {
 		//error = ERROR_DAMN_WATCHDOG;
 		u2f_prints("r");
 	}
-	u2f_prints("U2F ZERO\r\n");
+	u2f_prints("U2F ZERO ==================================\r\n");
 
 	run_tests();
 	ButtonState = BST_UNPRESSED;
