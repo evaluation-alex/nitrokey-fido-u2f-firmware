@@ -43,6 +43,8 @@
 #define U2F_ATTESTATION_KEY_SLOT	15
 #define U2F_MASTER_KEY_SLOT			1
 #define U2F_TEMP_KEY_SLOT			2
+#define U2F_WKEY_KEY_SLOT			1
+#define U2F_DEVICE_KEY_SLOT			3
 
 // Comment these out to fit firmware with a bootloader.
 #define U2F_SUPPORT_WINK

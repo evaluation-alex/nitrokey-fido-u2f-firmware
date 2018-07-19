@@ -136,7 +136,7 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 		return -1;
 	}
 
-	SHA_HMAC_KEY = U2F_MASTER_KEY_SLOT;
+	SHA_HMAC_KEY = U2F_DEVICE_KEY_SLOT;
 	SHA_FLAGS = ATECC_SHA_HMACSTART;
 	u2f_sha256_start();
 	u2f_sha256_update(appid,32);
@@ -186,7 +186,7 @@ int8_t u2f_load_key(uint8_t * handle, uint8_t * appid)
 	int i;
 
 	watchdog();
-	SHA_HMAC_KEY = U2F_MASTER_KEY_SLOT;
+	SHA_HMAC_KEY = U2F_DEVICE_KEY_SLOT;
 	SHA_FLAGS = ATECC_SHA_HMACSTART;
 	u2f_sha256_start();
 	u2f_sha256_update(appid,32);
@@ -206,7 +206,7 @@ int8_t u2f_load_key(uint8_t * handle, uint8_t * appid)
 static void gen_u2f_zero_tag(uint8_t * dst, uint8_t * appid, uint8_t * handle)
 {
 	const char * u2f_zero_const = "\xc1\xff\x67\x0d\x66\xe5\x55\xbb\xdc\x56\xaf\x7b\x41\x27\x4a\x21";
-	SHA_HMAC_KEY = U2F_MASTER_KEY_SLOT;
+	SHA_HMAC_KEY = U2F_DEVICE_KEY_SLOT;
 	SHA_FLAGS = ATECC_SHA_HMACSTART;
 	u2f_sha256_start();
 

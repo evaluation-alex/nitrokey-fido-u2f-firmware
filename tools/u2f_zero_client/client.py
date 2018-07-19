@@ -394,7 +394,6 @@ def do_configure(h,pemkey,output, reuse=False):
     if data[1] != 1:
         die('failed loading attestation key')
 
-
     print('writing keys to ', output)
     open(output,'w+').write(wkey + '\n' + rkey + '\n')
 
