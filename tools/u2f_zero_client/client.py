@@ -270,6 +270,12 @@ def get_write_mask(key):
     return h1 + h2[:8]
 
 
+def do_generate_device_key(h):
+    h.write([0,commands.U2F_CONFIG_LOAD_TRANS_KEY])
+    data = read_n_tries(h,5,64,1000)
+    if data[1] != 1:
+        die('failed generating master key')
+    print(repr(data))
 
 def _call_atec_command(h, opcode, param1, param2, data):
     atecc_cmd = [opcode, param1, param2, len(data)] + data
@@ -585,6 +591,9 @@ if __name__ == '__main__':
             sys.exit(1)
         h = open_u2f(SN)
         do_configure(h, sys.argv[2],sys.argv[3], reuse_keys)
+    elif action == 'generate_device_key':
+        h = open_u2f(SN)
+        do_generate_device_key(h)
     elif action == 'rng':
         h = open_u2f(SN)
         do_rng(h)
