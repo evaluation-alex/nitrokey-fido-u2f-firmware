@@ -56,6 +56,106 @@ except:
 cid_broadcast = [0xFF, 0xFF, 0xFF, 0xFF]
 cmd_prefix    = [0] + cid_broadcast
 
+class ATECC:
+    CMD_COUNTER = 0x24
+    # P1
+    COUNTER_READ = 0
+    COUNTER_INC = 1
+    # P2
+    COUNTER0 = 0
+    COUNTER1 = 1
+
+    CMD_RNG = 0x1B
+    RNG_P1 = 0
+    RNG_P2 = 0
+
+    CMD_SHA = 0x47
+    # P1
+    SHA_START = 0x0
+    SHA_UPDATE = 0x1
+    SHA_END = 0x2
+    SHA_HMACSTART = 0x4
+    SHA_HMACEND = 0x5
+    # P2 is keyslot
+    # ID = for hmac and message length otherwise
+
+    CMD_READ = 0x02
+    # P1
+    RW_CONFIG = 0x00
+    RW_OTP = 0x01
+    RW_DATA = 0x02
+    RW_EXT = 0x80
+    # P2
+    # read = addr
+
+    CMD_WRITE = 0x12
+    # P1
+    # same = as for read
+    # P2
+    # write = addr
+
+    # EEPROM_SLOT(x) 		(0x5 + ((x)>>1))
+    # EEPROM_SLOT_OFFSET(x) ( (x) & 1 ? 2 : 0 )
+    # EEPROM_SLOT_SIZE = 0x2
+
+    # EEPROM_KEY(x) 		(24 + ((x)>>1))
+    # EEPROM_KEY_OFFSET(x) 	( (x) & 1 ? 2 : 0 )
+    # EEPROM_KEY_SIZE = 0x2
+
+    # EEPROM_DATA_SLOT(x) 		(x<<3)
+
+    # EEPROM_B2A(b) 		((b)>>2)
+    # EEPROM_B2O(b) 		((b)&0x3)
+
+    CMD_LOCK = 0x17
+    # P1
+    # flags =
+    LOCK_CONFIG = 0x00
+    LOCK_DATA_OTP = 0x01
+    LOCK_SLOT = 0x02
+    # LOCK_SLOTNUM(x) 		(((x)&0xf)<<2)
+    LOCK_IGNORE_SUMMARY = 0x08
+    # P2 is CRC or 0
+
+    CMD_GENKEY = 0x40
+    # P1
+    GENKEY_PRIVATE = 0x04
+    GENKEY_PUBLIC = 0x00
+    GENKEY_PUBDIGEST = 0x08
+    GENKEY_PUBDIGEST2 = 0x10
+    # P2 is keyid
+
+    CMD_NONCE = 0x16
+    # P1
+    NONCE_RNG_UPDATE = 0x0
+    NONCE_TEMP_UPDATE = 0x3
+    # P2 is 0
+
+    CMD_SIGN = 0x41
+    # P1
+    SIGN_INTERNAL = 0x00
+    SIGN_EXTERNAL = 0x80
+    # P2 is keyid
+
+    CMD_GENDIG = 0x15
+    # P1
+    # same = as for read
+    # P2 is keyid
+
+    CMD_INFO = 0x30
+    # P1
+    # same = as for read
+    INFO_REVISION = 0x00
+    INFO_KEYVALID = 0x01
+    INFO_STATE = 0x02
+    INFO_GPIO = 0x03
+    # P2 is keyid
+
+    CMD_PRIVWRITE = 0x46
+    # P1
+    PRIVWRITE_ENC = 0x40
+    # P2 is keyid
+
 class commands:
     U2F_CONFIG_GET_SERIAL_NUM = 0x80
     U2F_CONFIG_IS_BUILD = 0x81
@@ -67,6 +167,7 @@ class commands:
     U2F_CONFIG_LOAD_ATTEST_KEY = 0x87
     U2F_CONFIG_BOOTLOADER = 0x88
     U2F_CONFIG_BOOTLOADER_DESTROY = 0x89
+    U2F_CONFIG_ATECC_PASSTHROUGH = 0x8a
 
     U2F_CUSTOM_RNG = 0x21
     U2F_CUSTOM_SEED = 0x22
@@ -168,6 +269,25 @@ def get_write_mask(key):
 
     return h1 + h2[:8]
 
+
+
+def _call_atec_command(h, opcode, param1, param2, data):
+    atecc_cmd = [opcode, param1, param2, len(data)] + data
+    h.write([0,commands.U2F_CONFIG_ATECC_PASSTHROUGH]+atecc_cmd)
+    res = read_n_tries(h, 5, 64, 1000)
+    cmd = res[0]
+    errcode = res[1]
+    ret_data = res[2:]
+    return errcode, ret_data
+
+def do_passt(h):
+#   use passthrough
+    data = [0]*50
+    res = _call_atec_command(h, ATECC.CMD_RNG, ATECC.RNG_P1, ATECC.RNG_P2, data)
+    print(repr(res))
+
+    res = _call_atec_command(h, ATECC.CMD_RNG, ATECC.RNG_P1, ATECC.RNG_P2, data)
+    print(repr(res))
 
 
 def do_configure(h,pemkey,output, reuse=False):
@@ -474,6 +594,9 @@ if __name__ == '__main__':
     elif action == 'wipe':
         h = open_u2f(SN)
         do_wipe(h)
+    elif action == 'passt':
+        h = open_u2f(SN)
+        do_passt(h)
     elif action == 'list':
         do_list()
     elif action == 'wink':
