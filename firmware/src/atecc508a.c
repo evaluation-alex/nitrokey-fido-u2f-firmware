@@ -541,6 +541,14 @@ void atecc_setup_init(uint8_t * buf)
 
 }
 
+typedef struct atecc_command{
+	uint8_t opcode;
+	uint8_t P1;
+	uint8_t P2;
+	uint8_t data_length;
+	uint8_t buf[64-4];
+} atecc_cmd;
+
 // buf should be at least 40 bytes
 void atecc_setup_device(struct config_msg * msg)
 {
@@ -557,6 +565,18 @@ void atecc_setup_device(struct config_msg * msg)
 
 	switch(msg->cmd)
 	{
+#ifndef _PRODUCTION_RELEASE
+		case U2F_CONFIG_ATECC_PASSTHROUGH:
+		{
+			atecc_cmd* cmd = (atecc_cmd*)msg->buf;
+			uint8_t err = atecc_send_recv(cmd->opcode,
+					cmd->P1, cmd->P2, cmd->buf, cmd->data_length,
+					buf, sizeof(buf), &res);
+			memset(usbres.buf, 0, sizeof(usbres.buf));
+			memmove(usbres.buf+1, res.buf, res.len);
+			usbres.buf[0] = err;
+		} break;
+#endif
 		case U2F_CONFIG_GET_SERIAL_NUM:
 
 			u2f_prints("U2F_CONFIG_GET_SERIAL_NUM\r\n");
@@ -722,6 +742,6 @@ void atecc_setup_device(struct config_msg * msg)
 	}
 
 	usb_write((uint8_t*)&usbres, HID_PACKET_SIZE);
-
+	memset(msg, 0, 64);
 }
 #endif
