@@ -95,13 +95,13 @@ static void PORTS_0_enter_DefaultMode_from_RESET(void) {
 	 - P0.4 output is push-pull
 	 - P0.5 output is open-drain
 	 - P0.6 output is push-pull
-	 - P0.7 output is push-pull
+	 - P0.7 output is open-drain
 	 ***********************************************************************/
 	SFRPAGE = 0x00;
 	P0MDOUT = P0MDOUT_B0__OPEN_DRAIN | P0MDOUT_B1__OPEN_DRAIN
 			| P0MDOUT_B2__OPEN_DRAIN | P0MDOUT_B3__OPEN_DRAIN
 			| P0MDOUT_B4__PUSH_PULL | P0MDOUT_B5__OPEN_DRAIN
-			| P0MDOUT_B6__PUSH_PULL | P0MDOUT_B7__PUSH_PULL;
+			| P0MDOUT_B6__PUSH_PULL | P0MDOUT_B7__OPEN_DRAIN;
 	// [P0MDOUT - Port 0 Output Mode]$
 
 	// $[P0MDIN - Port 0 Input Mode]
