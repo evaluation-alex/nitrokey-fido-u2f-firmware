@@ -72,7 +72,8 @@
 								<inputType id="com.silabs.ide.si8051.keil.assembler.inputType.1636083418" superClass="com.silabs.ide.si8051.keil.assembler.inputType"/>
 							</tool>
 							<tool command="LX51" errorParsers="com.silabs.ide.si8051.keil.KeilErrorParser" id="com.silabs.ide.si8051.keil.toolchain.linker.275973081" name="Keil 8051 Linker" superClass="com.silabs.ide.si8051.keil.toolchain.linker">
-								<option id="com.silabs.ide.si8051.keil.linker.category.ordering.selection.741378985" name="Linker input ordering" superClass="com.silabs.ide.si8051.keil.linker.category.ordering.selection" value="./src/InitDevice.OBJ;./src/Interrupts.OBJ;./src/SILABS_STARTUP.OBJ;./src/bsp.OBJ;./src/callback.OBJ;./src/descriptors.OBJ;./src/idle.OBJ;./src/u2f-firmware_main.OBJ;./src/u2f.OBJ;./src/u2f_hid.OBJ;./lib/efm8ub1/peripheralDrivers/src/usb_0.OBJ;./lib/efm8_usb/src/efm8_usbd.OBJ;./lib/efm8_usb/src/efm8_usbdch9.OBJ;./lib/efm8_usb/src/efm8_usbdep.OBJ;./lib/efm8_usb/src/efm8_usbdint.OBJ;./lib/efm8_assert/assert.OBJ" valueType="string"/>
+								<option id="com.silabs.ide.si8051.keil.linker.category.ordering.selection.741378985" name="Linker input ordering" superClass="com.silabs.ide.si8051.keil.linker.category.ordering.selection" value="./src/InitDevice.OBJ;./src/Interrupts.OBJ;./src/SILABS_STARTUP.OBJ;./src/bsp.OBJ;./src/callback.OBJ;./src/descriptors.OBJ;./src/u2f.OBJ;./src/u2f_hid.OBJ;./lib/efm8ub1/peripheralDrivers/src/usb_0.OBJ;./lib/efm8_usb/src/efm8_usbd.OBJ;./lib/efm8_usb/src/efm8_usbdch9.OBJ;./lib/efm8_usb/src/efm8_usbdep.OBJ;./lib/efm8_usb/src/efm8_usbdint.OBJ;./lib/efm8_assert/assert.OBJ;./tests/tests.OBJ;./src/atecc508a.OBJ;./src/cert.OBJ;./src/custom.OBJ;./src/eeprom.OBJ;./src/i2c.OBJ;./src/lockbyte.OBJ;./src/main.OBJ;./src/u2f_atecc.OBJ" valueType="string"/>
+								<option id="com.silabs.ide.si8051.keil.linker.category.misc.extraflags.650698754" name="Additional Flags" superClass="com.silabs.ide.si8051.keil.linker.category.misc.extraflags" value="SEGMENTS (?CO?LOCKBYTE(C:0xFBFF)) OVERLAY (* ! ?CO?LOCKBYTE)" valueType="string"/>
 								<inputType id="com.silabs.ide.si8051.keil.linker.inputType.427589245" superClass="com.silabs.ide.si8051.keil.linker.inputType"/>
 							</tool>
 							<tool id="com.silabs.ide.si8051.keil.toolchain.librarian.1179010176" name="Keil 8051 Library Manager" superClass="com.silabs.ide.si8051.keil.toolchain.librarian"/>
@@ -108,5 +109,6 @@
 		<configuration configurationName="Keil 8051 v9.53 - Debug">
 			<resource resourceType="PROJECT" workspacePath="/u2f-firmware"/>
 		</configuration>
+		<configuration configurationName="release"/>
 	</storageModule>
 </cproject>
