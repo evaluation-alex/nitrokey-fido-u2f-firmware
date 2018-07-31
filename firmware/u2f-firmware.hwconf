@@ -26,7 +26,9 @@
     <property object="P0.6" propertyId="ports.settings.label" value="LED"/>
     <property object="P0.6" propertyId="ports.settings.outputmode" value="Push-pull"/>
     <property object="P0.6" propertyId="ports.settings.skip" value="Skipped"/>
+    <property object="P0.7" propertyId="ports.settings.iomode" value="Digital Push-Pull Output"/>
     <property object="P0.7" propertyId="ports.settings.label" value="Button_Reset"/>
+    <property object="P0.7" propertyId="ports.settings.outputmode" value="Push-pull"/>
     <property object="P0.7" propertyId="ports.settings.skip" value="Skipped"/>
     <property object="P1.0" propertyId="ports.settings.skip" value="Skipped"/>
     <property object="PBCFG_0" propertyId="pbcfg.settings.enablecrossbar" value="Enabled"/>
@@ -96,7 +98,6 @@
     <property object="VREG_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="VREG_0" propertyId="vreg.5vto33vldoregulatorldo1.regulatorbias" value="Disabled (Lowest power consumption)"/>
     <property object="WDT_0" propertyId="ABPeripheral.included" value="true"/>
-    <property object="WDT_0" propertyId="wdt.watchdogcontrol.wdtenable" value="Disable"/>
     <property object="WDT_0" propertyId="wdt.watchdogcontrol.wdtinitialvalue" value="4"/>
     <property object="WDT_0" propertyId="wdt.watchdogcontrol.wdtperiodactual" value="204.800 ms"/>
     <property object="WDT_0" propertyId="wdt.watchdogcontrol.wdtperiodtargetms" value="200"/>
