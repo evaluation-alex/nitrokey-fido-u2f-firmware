@@ -3,13 +3,35 @@
 This description is reduced to the relevant aspects so that length fields and other fields are not mentioned (indicated with “...”). The complete overview of request and response fields is covered in the official FIDO specifications. 
 In this document "`||`" symbol means data concatenation.
 
-## Initialization
-- Device key (also: device secret) is a 256 bit random value generated during production or first start of the device. The device key must be kept in ATECC508 at all times and not be read out.
-- Global use counter is set to zero. It is shared between credentials/applications.
+Global use counter is set to zero initially. It is defined per-device and incremented for each registration and authentication.
+
+During both registration and authentication procedures, private keys are generated. These have to be transferred temporary between MCU and ATECC chip to perform further cryptographic operations. To maintain security, they are XORed with both `wkey` and `rkey` to keep the I2C bus communication encrypted:
 - `rkey` is present only on the MCU. This is a XOR-key for I2C bus encryption on read (modifying data read from ATECC chip). 
 - `wkey` is created on the host from the SHA-256 hash of the `device_key` number. Similarly to `wkey`, it is present only on the MCU. This is a XOR-key for I2C bus encryption on write (to the ATECC chip).
 
+# Phases
 
+## Certificate and attestation key generation
+
+Certificate and attestation key are generated on the vendor's computer in this phase and stored on hard drive.
+
+## Configuration / SETUP phase
+
+1. RNG is run on the host to produce three 32-byte random numbers for `device key`, `_wkey` and `_rkey`. The former is the device-specific secret for U2F functionality which - after setup - won't leave the ATECC. The latter two will be used during the device's work for encrypting communication with the ATECC chip on the I2C bus.
+2. `device key` is loaded to the ATECC chip unmodified.
+3. `_rkey` and `_wkey` are SHA256-hashed with a known constant. The outcomes are target `rkey` and `wkey` respectively, and written to the FINAL firmware (to the `cert.c` file).
+4. `wkey` is loaded to the device and kept in the RAM.
+5. Attestation key is sent to the device and saved to RAM. 
+6. A key hash is calculated to authenticate its encrypted write to the ATECC chip.
+7. Attestation key is XORed with `wkey` and written to the ATECC chip using previously calculated key hash MAC.
+
+
+![Keys handling diagram - setup][keys-setup]
+
+
+
+## Firmware compilation
+During the compilation the attestation certificate and `wkey`/`rkey` constants are included directly into the firmware files as static binary blobs.
 
 
 ## Registration
@@ -38,6 +60,16 @@ In this document "`||`" symbol means data concatenation.
 
 ![Registration diagram][register]
 
+### Transport Encryption During Registration
+1. `priv_user_key_rkey := priv_user_key ^ rkey` - a generated private key is XORed with `rkey`.
+2. `key_write_auth_mac := sha256(wkey || priv_user_key_rkey || privwrite_const)` - the modified key is used to compute write authentication hash for ATECC chip.
+3. `priv_user_key_rkey_wkey := priv_user_key_rkey ^ wkey` - the modified key is once again XORed with `wkey`
+4. `privwrite(priv_user_key_rkey_wkey, device_key || key_write_auth_mac)`  - private key is saved to the device using previously calculated write hash.
+5. `priv_user_key_rkey:= priv_user_key_rkey_wkey ^ wkey` - on ATECC the received data is decrypted with `wkey`, leaving `rkey` mask applied to the sent key. 
+
+![Keys handling diagram - registration][keys-registration]
+
+
 ## Authentication
 ### Authentication Request:
 - The challenge parameter [32 bytes]. The challenge parameter is the SHA-256 hash of the Client Data, a stringified JSON data structure that the FIDO Client prepares. Among other things, the Client Data contains the challenge from the relying party (hence the name of the parameter). See below for a detailed explanation of Client Data.
@@ -62,47 +94,7 @@ In this document "`||`" symbol means data concatenation.
 
 ![Authentication diagram][auth]
 
-
-# Key handling
-Below is a description of secret keys movement during the device lifecycle. 
-Internal implementation uses additionally a couple of secret keys, which handle communication between MCU and ATECC chip (`rkey`/`wkey`).
-
-## Certificate and attestation key generation
-
-Certificate and attestation key are generated in this phase and stored on hard drive.
-
-## Configuration / SETUP phase
-
-1. RNG is run on the host to produce three 32-byte random numbers for `device key`, `_wkey` and `_rkey`. The former is the device-specific secret for U2F functionality. The latter two will be used during the device's work for encrypting communication with the ATECC chip on the I2C bus.
-2. `device key` is loaded to the ATECC chip unmodified.
-3. `_rkey` and `_wkey` are SHA256-hashed with a known constant. The outcomes are target `rkey` and `wkey` respectively, and written to the FINAL firmware (to the `cert.c` file).
-4. `wkey` is loaded to the device and kept in the RAM.
-5. Attestation key is sent to the device and saved to RAM. 
-6. A key hash is calculated to authenticate its encrypted write to the ATECC chip.
-7. Attestation key is XORed with `wkey` and written to the ATECC chip using previously calculated key hash MAC.
-
-
-![Keys handling diagram - setup][keys-setup]
-
-
-
-## Firmware compilation
-During the compilation the attestation certificate and `wkey`/`rkey` constants are included directly into the firmware files as static binary blobs.
-
-
-## U2F registration / authentication
-During both registration and authentication procedures, private keys are generated. These have to be written to the ATECC chip to perform further cryptographic operations. To maintain security, they are XORed with both `wkey` and `rkey` to keep the I2C bus communication encrypted.
-
-### Registration
-1. `priv_user_key_rkey := priv_user_key ^ rkey` - a generated private key is XORed with `rkey`.
-2. `key_write_auth_mac := sha256(wkey || priv_user_key_rkey || privwrite_const)` - the modified key is used to compute write authentication hash for ATECC chip.
-3. `priv_user_key_rkey_wkey := priv_user_key_rkey ^ wkey` - the modified key is once again XORed with `wkey`
-4. `privwrite(priv_user_key_rkey_wkey, device_key || key_write_auth_mac)`  - private key is saved to the device using previously calculated write hash.
-5. `priv_user_key_rkey:= priv_user_key_rkey_wkey ^ wkey` - on ATECC the received data is decrypted with `wkey`, leaving `rkey` mask applied to the sent key. 
-
-![Keys handling diagram - registration][keys-registration]
-
-### Authentication
+### Transport Encryption During Authentication
 Authentication differs from Registration usage by not computing the write MAC for the ATECC chip, and instead reusing the `key_handle`, which contains the computed on registration value. 
 
 ![Keys handling diagram - authentication][keys-authentication]
@@ -115,3 +107,4 @@ Authentication differs from Registration usage by not computing the write MAC fo
 [keys-setup]: keys_usage-configuration.png "Keys handling diagram - setup"
 [keys-registration]: keys_usage-u2f_registration.png "Keys handling diagram - registration"
 [keys-authentication]: keys_usage-u2f_authentication.png "Keys handling diagram - authentication"
+
