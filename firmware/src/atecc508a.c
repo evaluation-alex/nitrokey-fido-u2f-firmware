@@ -450,7 +450,7 @@ static void atecc_setup_config(uint8_t* buf)
 static uint8_t trans_key[36];
 static uint8_t write_key[36];
 
-
+#ifdef ENABLE_TESTS
 void atecc_test_enc_read(uint8_t * buf)
 {
 	struct atecc_response res;
@@ -513,7 +513,7 @@ void atecc_test_signature(int keyslot, uint8_t * buf)
 
 	dump_signature_der(res.buf);
 }
-
+#endif
 
 
 
