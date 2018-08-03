@@ -90,7 +90,7 @@ int8_t u2f_get_user_feedback()
 	}
 
 	if (button_get_press() == 1) {                          // Button has been pushed in time
-		led_on();
+		led_off();
 	} else {                                          // Button hasnt been pushed within the timeout
 		led_blink(LED_BLINK_NUM_INF, 375);
 		return 1;                                     // Return error code
