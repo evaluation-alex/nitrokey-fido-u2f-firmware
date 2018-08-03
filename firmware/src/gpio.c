@@ -50,7 +50,7 @@ static data uint32_t  LedBlinkTmr;                    // Timer for TaskLedBlink(
 static data uint16_t  LedBlinkPeriodT;                // Period time register
 static data uint8_t   LedBlinkNum;                    // Blink number counter, also an indicator if blinking is on
 
-void TaskButton (void) {                              // Requires at least a 750ms long button press to register a valid user button press
+void button_manager (void) {                          // Requires at least a 750ms long button press to register a valid user button press
 	if (IS_BUTTON_PRESSED()) {                        // Button's physical state: pressed
 		switch (ButtonState) {                        // Handle press phase
 		    case BST_UNPRESSED: {                     // It happened at this moment
@@ -69,29 +69,29 @@ void TaskButton (void) {                              // Requires at least a 750
 	}
 }
 
-uint8_t IsButtonPressed (void) {
+uint8_t button_get_press (void) {
 	return ((ButtonState == BST_PRESSED_REGISTERED)? 1 : 0);
 }
 
 
-void LedOn (void) {
+void led_on (void) {
 	LedBlinkNum = 0;                                  // Stop ongoing blinking
 	LED_ON();                                         // LED physical state -> ON
 }
 
-void LedOff (void) {
+void led_off (void) {
 	LedBlinkNum = 0;                                  // Stop ongoing blinking
 	LED_OFF();                                        // LED physical state -> OFF
 }
 
-void LedBlink (uint8_t blink_num, uint16_t period_t) {
+void led_blink (uint8_t blink_num, uint16_t period_t) {
 	LedBlinkNum     = blink_num;
 	LedBlinkPeriodT = period_t;
 	LedBlinkTmr     = get_ms();
     LED_ON();
 }
 
-void TaskLedBlink (void) {
+void led_blink_manager (void) {
 	if (LedBlinkNum) {                                     // LED blinking is on
 		if (IS_LED_ON()) {                                 // ON state
 			if (get_ms() - LedBlinkTmr >= LED_BLINK_T_ON) { // ON time expired

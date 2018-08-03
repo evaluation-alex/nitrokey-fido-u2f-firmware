@@ -37,6 +37,7 @@
 #include <string.h>
 
 #include "bsp.h"
+#include "gpio.h"
 #include "u2f_hid.h"
 #include "u2f.h"
 
@@ -421,7 +422,7 @@ static uint8_t hid_u2f_parse(struct u2f_hid_msg* req)
 			u2f_hid_set_len(0);
 			u2f_hid_writeback(NULL, 0);
 			u2f_hid_flush();
-			LedBlink(5, 300);
+			led_blink(5, 300);
 
 			break;
 #endif

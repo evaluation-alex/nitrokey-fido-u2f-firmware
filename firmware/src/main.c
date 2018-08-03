@@ -120,16 +120,16 @@ int16_t main(void) {
 
 	run_tests();
 	BUTTON_RESET_OFF();
-	LedOff();
+	led_off();
 	atecc_setup_init(appdata.tmp);
 
-	LedBlink(1, 0);                                   // Blink once after successful startup
+	led_blink(1, 0);                                   // Blink once after successful startup
 
 	while (1) {
 		watchdog();
 
-        TaskButton();
-        TaskLedBlink();
+        button_manager();
+        led_blink_manager();
         #ifdef __BUTTON_TEST__
         if (!LedBlinkNum) {
             if (IsButtonPressed()) { LedOn();  }

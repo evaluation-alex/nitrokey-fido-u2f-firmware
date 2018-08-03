@@ -79,20 +79,20 @@ int8_t u2f_get_user_feedback()
 		}
 		watchdog();
 	}
-	LedBlink(LED_BLINK_NUM_INF, 375);
-	while(!IsButtonPressed())                         // Wait to push button
+	led_blink(LED_BLINK_NUM_INF, 375);
+	while(button_get_press() == 0)                         // Wait to push button
 	{
-		TaskLedBlink();                               // Run button driver
-        TaskButton();                                 // Run led driver to ensure blinking
+		led_blink_manager();                               // Run button driver
+        button_manager();                                 // Run led driver to ensure blinking
 		if (get_ms() - t > U2F_MS_USER_INPUT_WAIT)    // 3 secs elapsed without button press
 			break;                                    // Timeout
 		watchdog();
 	}
 
-	if (IsButtonPressed()) {                          // Button has been pushed in time
-		LedOn();
+	if (button_get_press() == 1) {                          // Button has been pushed in time
+		led_on();
 	} else {                                          // Button hasnt been pushed within the timeout
-		LedBlink(LED_BLINK_NUM_INF, 375);
+		led_blink(LED_BLINK_NUM_INF, 375);
 		return 1;                                     // Return error code
 	}
 
