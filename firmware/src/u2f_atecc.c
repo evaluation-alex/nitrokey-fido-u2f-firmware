@@ -34,6 +34,7 @@
 #undef U2F_DISABLE
 #ifndef U2F_DISABLE
 #include "bsp.h"
+#include "gpio.h"
 #include "u2f.h"
 #include "u2f_hid.h"
 #include "eeprom.h"
