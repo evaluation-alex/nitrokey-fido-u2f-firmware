@@ -31,6 +31,7 @@
 #include <SI_EFM8UB3_Register_Enums.h>
 
 #include "bsp.h"
+#include "app.h"
 
 
 #define ms_since(ms,num) (((uint16_t)get_ms() - (ms)) >= num ? ((ms=(uint16_t)get_ms())):0)
@@ -43,70 +44,70 @@ typedef enum {
 	BST_MAX_NUM
 } BUTTON_STATE_T;
 
-data  uint32_t        ButtonPressT;                   // Timer for TaskButton() timings
-data  BUTTON_STATE_T  ButtonState = BST_UNPRESSED;    // Holds the actual registered logical state of the button
+data  uint32_t        button_press_t;                   // Timer for TaskButton() timings
+data  BUTTON_STATE_T  button_state = BST_UNPRESSED;    // Holds the actual registered logical state of the button
 
-static data uint32_t  LedBlinkTmr;                    // Timer for TaskLedBlink() timings
-static data uint16_t  LedBlinkPeriodT;                // Period time register
-static data uint8_t   LedBlinkNum;                    // Blink number counter, also an indicator if blinking is on
+static data uint32_t  led_blink_tim;                    // Timer for TaskLedBlink() timings
+static data uint16_t  led_blink_period_t;                // Period time register
+static data uint8_t   led_blink_num;                    // Blink number counter, also an indicator if blinking is on
 
 void button_manager (void) {                          // Requires at least a 750ms long button press to register a valid user button press
 	if (IS_BUTTON_PRESSED()) {                        // Button's physical state: pressed
-		switch (ButtonState) {                        // Handle press phase
+		switch (button_state) {                        // Handle press phase
 		    case BST_UNPRESSED: {                     // It happened at this moment
-				ButtonState  = BST_PRESSED_RECENTLY;  // Update button state
-				ButtonPressT = get_ms();              // Start measure press time
+				button_state  = BST_PRESSED_RECENTLY;  // Update button state
+				button_press_t = get_ms();              // Start measure press time
 		    }break;
 		    case BST_PRESSED_RECENTLY: {              // Button is already pressed, press time measurement is ongoing
-				if (get_ms() - ButtonPressT >= BUTTON_MIN_PRESS_T_MS) { // Press time reached the critical value to register a valid user touch
-				    ButtonState = BST_PRESSED_REGISTERED; // Update button state
+				if (get_ms() - button_press_t >= BUTTON_MIN_PRESS_T_MS) { // Press time reached the critical value to register a valid user touch
+				    button_state = BST_PRESSED_REGISTERED; // Update button state
 				}
 		    }break;
 		    default: {}break;
 		}
 	} else {                                          // Button is unprssed
-		ButtonState = BST_UNPRESSED;                  // Update button state
+		button_state = BST_UNPRESSED;                  // Update button state
 	}
 }
 
 uint8_t button_get_press (void) {
-	return ((ButtonState == BST_PRESSED_REGISTERED)? 1 : 0);
+	return ((button_state == BST_PRESSED_REGISTERED)? 1 : 0);
 }
 
 
 void led_on (void) {
-	LedBlinkNum = 0;                                  // Stop ongoing blinking
+	led_blink_num = 0;                                  // Stop ongoing blinking
 	LED_ON();                                         // LED physical state -> ON
 }
 
 void led_off (void) {
-	LedBlinkNum = 0;                                  // Stop ongoing blinking
+	led_blink_num = 0;                                  // Stop ongoing blinking
 	LED_OFF();                                        // LED physical state -> OFF
 }
 
 void led_blink (uint8_t blink_num, uint16_t period_t) {
-	LedBlinkNum     = blink_num;
-	LedBlinkPeriodT = period_t;
-	LedBlinkTmr     = get_ms();
+	led_blink_num     	= blink_num;
+	led_blink_period_t 	= period_t;
+	led_blink_tim     	= get_ms();
     LED_ON();
 }
 
 void led_blink_manager (void) {
-	if (LedBlinkNum) {                                     // LED blinking is on
+	if (led_blink_num) {                                     // LED blinking is on
 		if (IS_LED_ON()) {                                 // ON state
-			if (get_ms() - LedBlinkTmr >= LED_BLINK_T_ON) { // ON time expired
+			if (get_ms() - led_blink_tim >= LED_BLINK_T_ON) { // ON time expired
 				LED_OFF();                                 // LED physical state -> OFF
-				if (LedBlinkNum) {                         // It isnt the last blink round: initialize OFF state:
-					LedBlinkTmr   = get_ms();		       // Init OFF timer
-					if (LedBlinkNum != 255) {              // Not endless blinking:
-						LedBlinkNum--;                     // Update the remaining blink num
+				if (led_blink_num) {                         // It isnt the last blink round: initialize OFF state:
+					led_blink_tim   = get_ms();		       // Init OFF timer
+					if (led_blink_num != 255) {              // Not endless blinking:
+						led_blink_num--;                     // Update the remaining blink num
 					}
 				}
 			}
 		} else {                                           // OFF state
-			if (get_ms() - LedBlinkTmr >= LED_BLINK_T_OFF) { // OFF time expired
+			if (get_ms() - led_blink_tim >= LED_BLINK_T_OFF) { // OFF time expired
 				LED_ON();                                  // LED physical state -> ON
-				LedBlinkTmr   = get_ms();		           // Init ON timer
+				led_blink_tim   = get_ms();		           // Init ON timer
 			}
 		}
 	}
