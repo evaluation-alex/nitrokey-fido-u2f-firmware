@@ -36,7 +36,6 @@
 
 #include "bsp.h"
 
-
 uint8_t shabuf[70];
 uint8_t shaoffset = 0;
 uint8_t SHA_FLAGS = 0;
@@ -399,6 +398,16 @@ static void dump_config(uint8_t* buf)
 	uint8_t i,j;
 	uint16_t crc = 0;
 	struct atecc_response res;
+	uint8_t config_data[128];
+	struct atecc_slot_config *c;
+	struct atecc_key_config *d;
+
+	//See 2.2 EEPROM Configuration Zone of ATECC508A Complete Data Sheet
+	const int slot_config_offset = 20;
+	const int key_config_offset = 96;
+	const int slot_config_size = sizeof(struct atecc_slot_config);
+	const int key_config_size = sizeof(struct atecc_key_config);
+
 
 	u2f_prints("config dump:\r\n");
 	for (i=0; i < 4; i++)
@@ -414,9 +423,44 @@ static void dump_config(uint8_t* buf)
 			crc = feed_crc(crc,res.buf[j]);
 		}
 		dump_hex(res.buf,res.len);
+		memmove(config_data+i*32, res.buf, 32);
 	}
 
 	u2f_printx("current config crc:", 1,reverse_bits(crc));
+
+
+#define _PRINT(x) u2f_printb(#x": ", 1, x)
+
+	for (i=0; i<16; i++){
+		u2f_printb("Slot config: ", 1, i);
+		c = (struct atecc_slot_config*) (config_data + slot_config_offset + i * slot_config_size);
+		u2f_prints("hex: "); dump_hex(c,2);
+		_PRINT(c->writeconfig);
+		_PRINT(c->writekey);
+		_PRINT(c->encread);
+		_PRINT(c->limiteduse);
+		_PRINT(c->nomac);
+		_PRINT(c->readkey);
+
+
+		u2f_printb("Key config: ", 1, i);
+		d = (struct atecc_key_config *) (config_data + key_config_offset + i * key_config_size);
+		u2f_prints("hex: "); dump_hex(d,2);
+
+		_PRINT(d->x509id);
+		_PRINT(d->rfu);
+		_PRINT(d->intrusiondisable);
+		_PRINT(d->authkey);
+		_PRINT(d->reqauth);
+		_PRINT(d->reqrandom);
+		_PRINT(d->lockable);
+		_PRINT(d->keytype);
+		_PRINT(d->pubinfo);
+		_PRINT(d->private);
+	}
+
+#undef _PRINT
+
 }
 
 static void atecc_setup_config(uint8_t* buf)
@@ -426,14 +470,38 @@ static void atecc_setup_config(uint8_t* buf)
 //	struct atecc_slot_config c;
 
 
-	uint8_t * slot_configs = "\x83\x71\x81\x01\x83\x71\xC1\x01\x83\x71"
-							 "\x83\x71\x83\x71\xC1\x71\x01\x01\x83\x71"
-							 "\x83\x71\xC1\x71\x83\x71\x83\x71\x83\x71"
+	uint8_t * slot_configs = "\x83\x71"
+							 "\x81\x01"
+							 "\x83\x71"
+							 "\xC1\x01"
+							 "\x83\x71"
+							 "\x83\x71"
+							 "\x83\x71"
+							 "\xC1\x71"
+							 "\x01\x01"
+							 "\x83\x71"
+							 "\x83\x71"
+							 "\xC1\x71"
+							 "\x83\x71"
+							 "\x83\x71"
+							 "\x83\x71"
 							 "\x83\x71";
 
-	uint8_t * key_configs = "\x13\x00\x3C\x00\x13\x00\x3C\x00\x13\x00"
-							"\x3C\x00\x13\x00\x3C\x00\x3C\x00\x3C\x00"
-							"\x13\x00\x3C\x00\x13\x00\x3C\x00\x13\x00"
+	uint8_t * key_configs = "\x13\x00"
+							"\x3C\x00"
+							"\x13\x00"
+							"\x3C\x00"
+							"\x13\x00"
+							"\x3C\x00"
+							"\x13\x00"
+							"\x3C\x00"
+							"\x3C\x00"
+							"\x3C\x00"
+							"\x13\x00"
+							"\x3C\x00"
+							"\x13\x00"
+							"\x3C\x00"
+							"\x13\x00"
 							"\x33\x00";
 
 	// write configuration
