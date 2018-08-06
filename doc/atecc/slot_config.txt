@@ -1,0 +1,155 @@
+writekey: all keys slot are authorized by slot 1
+writeconfig: 7 - encrypted write, genkey, derivekey, 0 - cleartext write only
+encread: 1 - read will be encrypted, as configured in readkey bits, 0 - read is not encrypted
+readkey: (private_key==true) ? slot_no to use for encryption for read command _ELSE_ 1 - could be used to sign; 3 - internal signatures of Gendig or GenKey are enabled
+
+
+
+Slot config: 0 
+hex: 8371
+c->writeconfig: 7 
+c->writekey: 1 
+c->encread: 0 
+c->limiteduse: 0 
+c->nomac: 0 
+c->readkey: 3 
+
+
+
+Slot config: 1 
+hex: 8101
+c->writeconfig: 0 
+c->writekey: 1 
+c->encread: 0 
+c->limiteduse: 0 
+c->nomac: 0 
+c->readkey: 1 
+
+
+
+Slot config: 2 
+hex: 8371
+c->writeconfig: 7 
+c->writekey: 1 
+c->encread: 0 
+c->limiteduse: 0 
+c->nomac: 0 
+c->readkey: 3 
+
+
+
+Slot config: 3 
+hex: c101
+c->writeconfig: 0 
+c->writekey: 1 
+c->encread: 1 
+c->limiteduse: 0 
+c->nomac: 0 
+c->readkey: 1 
+
+
+
+Slot config: 4 
+hex: 8371
+c->writeconfig: 7 
+c->writekey: 1 
+c->encread: 0 
+c->limiteduse: 0 
+c->nomac: 0 
+c->readkey: 3 
+
+
+
+Slot config: 5 
+hex: 8371
+c->writeconfig: 7 
+c->writekey: 1 
+c->encread: 0 
+c->limiteduse: 0 
+c->nomac: 0 
+c->readkey: 3 
+
+
+
+Slot config: 6 
+hex: 8371
+c->writeconfig: 7 
+c->writekey: 1 
+c->encread: 0 
+c->limiteduse: 0 
+c->nomac: 0 
+c->readkey: 3 
+
+
+
+Slot config: 7 
+hex: c171
+c->writeconfig: 7 
+c->writekey: 1 
+c->encread: 1 
+c->limiteduse: 0 
+c->nomac: 0 
+c->readkey: 1 
+
+KEY CONFIG SLOT
+
+lockable: 1 - slot can be locked with LOCK command. 
+See slot locked field in Configuration zone to determine lock state
+keytype: 7-not ECC, 4-ECC key
+(pubinfo,private): 
+(1,1): contains ECC private key, for which public key can be generated
+(0,0): contains other data, ECC public key or SHA key
+
+
+
+Slot config: 0
+hex: 1300
+d->x509id: 0
+d->rfu: 0
+d->intrusiondisable: 0
+d->authkey: 0
+d->reqauth: 0
+d->reqrandom: 0
+d->lockable: 0
+d->keytype: 4
+d->pubinfo: 1
+d->private: 1
+
+Slot config: 1
+hex: 3c00
+d->x509id: 0
+d->rfu: 0
+d->intrusiondisable: 0
+d->authkey: 0
+d->reqauth: 0
+d->reqrandom: 0
+d->lockable: 1
+d->keytype: 7
+d->pubinfo: 0
+d->private: 0
+
+Slot config: 2
+hex: 1300
+d->x509id: 0
+d->rfu: 0
+d->intrusiondisable: 0
+d->authkey: 0
+d->reqauth: 0
+d->reqrandom: 0
+d->lockable: 0
+d->keytype: 4
+d->pubinfo: 1
+d->private: 1
+
+Slot config: 3
+hex: 3c00
+d->x509id: 0
+d->rfu: 0
+d->intrusiondisable: 0
+d->authkey: 0
+d->reqauth: 0
+d->reqrandom: 0
+d->lockable: 1
+d->keytype: 7
+d->pubinfo: 0
+d->private: 0
