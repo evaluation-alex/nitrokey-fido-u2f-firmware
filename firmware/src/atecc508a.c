@@ -404,6 +404,9 @@ static void dump_config(uint8_t* buf)
 	const int slot_config_size = sizeof(struct atecc_slot_config);
 	const int key_config_size = sizeof(struct atecc_key_config);
 
+#ifndef U2F_PRINT
+	return;
+#endif
 
 	u2f_prints("config dump:\r\n");
 	for (i=0; i < 4; i++)
