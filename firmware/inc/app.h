@@ -179,9 +179,6 @@ uint8_t get_app_state();
 void set_app_state(APP_STATE s);
 
 
-// should be called after initializing eeprom
-void u2f_init();
-
 
 #ifdef ATECC_SETUP_DEVICE
 
@@ -195,18 +192,15 @@ void u2f_config_request();
 
 #define U2F_HID_DISABLE
 #define U2F_DISABLE
-#define u2f_init(x)
 #define u2f_hid_init(x)
 #define u2f_hid_request(x)	atecc_setup_device((struct config_msg*)x)
 #define u2f_hid_set_len(x)
 #define u2f_hid_flush(x)
 #define u2f_hid_writeback(x)
 #define u2f_hid_check_timeouts(x)
-#define u2f_wipe_keys(x)	1
 
 #else
 
-int8_t u2f_wipe_keys();
 #define atecc_setup_device(x)
 #define atecc_setup_init(x)
 #endif
