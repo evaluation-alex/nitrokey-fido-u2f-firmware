@@ -102,9 +102,9 @@ Authentication differs from Registration usage by not computing the write MAC fo
 
 
 
-[register]: u2f-registration.png "U2F Registeration"
-[auth]: u2f-authentication.png "U2F Authorization"
-[keys-setup]: keys_usage-configuration.png "Keys handling diagram - setup"
-[keys-registration]: keys_usage-u2f_registration.png "Keys handling diagram - registration"
-[keys-authentication]: keys_usage-u2f_authentication.png "Keys handling diagram - authentication"
+[register]: images/u2f-registration.png "U2F Registeration"
+[auth]: images/u2f-authentication.png "U2F Authorization"
+[keys-setup]: images/keys_usage-configuration.png "Keys handling diagram - setup"
+[keys-registration]: images/keys_usage-u2f_registration.png "Keys handling diagram - registration"
+[keys-authentication]: images/keys_usage-u2f_authentication.png "Keys handling diagram - authentication"
 
