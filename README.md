@@ -7,6 +7,8 @@ Nitrokey FIDO U2F is based on [U2F Zero](https://github.com/conorpp/u2f-zero/), 
 
 Hardware files are provided [here](https://github.com/Nitrokey/nitrokey-fido-u2f-hardware). Nitrokey's device differs in using a touch button instead of a regular one, as well as using smaller PCB and bigger flash MCU.
 
+## Documentation
+U2F key derivation algorithm, and other working details, are documented in files placed in the [doc](doc) folder.
 
 ## Build (Ubuntu 18.04)
 
