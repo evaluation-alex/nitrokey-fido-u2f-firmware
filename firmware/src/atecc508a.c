@@ -42,6 +42,20 @@ uint8_t SHA_FLAGS = 0;
 uint8_t SHA_HMAC_KEY = 0;
 struct atecc_response res_digest;
 
+// 1 page - 64 bytes
+struct DevConf device_configuration;
+
+int8_t read_masks(){
+	memset(&device_configuration, 42, sizeof(device_configuration));
+	eeprom_read(EEPROM_DATA_MASKS, &device_configuration, sizeof(device_configuration));
+	u2f_prints("reading masks -----\r\n");
+	u2f_prints("current write key: "); dump_hex(device_configuration.WMASK,36);
+	u2f_prints("current read key: "); dump_hex(device_configuration.RMASK,36);
+}
+
+int8_t write_masks(){
+	eeprom_write(EEPROM_DATA_MASKS, &device_configuration, sizeof(device_configuration));
+}
 
 int8_t atecc_send(uint8_t cmd, uint8_t p1, uint16_t p2,
 					uint8_t * buf, uint8_t len)
@@ -609,15 +623,13 @@ void atecc_setup_init(uint8_t * buf)
 	{
 		u2f_prints("already locked\r\n");
 	}
-
 }
 
 uint8_t generate_random_data(uint8_t *out_buf){
-	struct atecc_response res;
 	if (atecc_send_recv(ATECC_CMD_RNG,ATECC_RNG_P1,ATECC_RNG_P2,
 					NULL, 0,
-					appdata.tmp,
-					sizeof(appdata.tmp), &res) == 0 )
+					appdata.tmp, sizeof(appdata.tmp),
+					NULL) == 0 )
 		{
 			memmove(out_buf, appdata.tmp, 32);
 			return 0;
@@ -625,10 +637,7 @@ uint8_t generate_random_data(uint8_t *out_buf){
 	return 1;
 }
 
-void generate_device_key(uint8_t *input, uint8_t *output){
-	uint8_t buf[40];
-	struct atecc_response res;
-
+void generate_device_key(uint8_t *output, uint8_t *buf){
 	u2f_prints("generating device key ... ");
 
 	if (generate_random_data(trans_key) == 0){
@@ -648,10 +657,11 @@ void generate_device_key(uint8_t *input, uint8_t *output){
 
 	if(atecc_send_recv(ATECC_CMD_WRITE,
 		ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT), trans_key, 32,
-		buf, sizeof(buf), &res) != 0)
+		buf, 70, NULL) != 0)
 	{
 		output[0] = 2; //failed, stage 2, key writing
 		u2f_prints("writing device key failed\r\n");
+		return;
 	}
 	u2f_prints("writing device key succeed\r\n");
 
@@ -767,12 +777,30 @@ void atecc_setup_device(struct config_msg * msg)
 			}
 			break;
 
+		case U2F_CONFIG_LOAD_RMASK_KEY:
+			u2f_prints("U2F_CONFIG_LOAD_RMASK_KEY\r\n");
+			u2f_prints("current read key: "); dump_hex(device_configuration.RMASK,36);
+			memmove(device_configuration.RMASK,msg->buf,36);
+			write_masks();
+			read_masks();
+			memmove(usbres.buf + 1 , device_configuration.RMASK, 36);
+			u2f_prints("read key: "); dump_hex(device_configuration.RMASK,36);
+			usbres.buf[0] = 1;
+			break;
+
 		case U2F_CONFIG_LOAD_WRITE_KEY:
 			u2f_prints("U2F_CONFIG_LOAD_WRITE_KEY\r\n");
+			u2f_prints("current write key: "); dump_hex(device_configuration.WMASK,36);
 			memmove(write_key,msg->buf,36);
+			memmove(device_configuration.WMASK,msg->buf,36);
+			write_masks();
+			read_masks();
+			memmove(usbres.buf + 1 , device_configuration.WMASK, 36);
+			u2f_prints("write key: "); dump_hex(device_configuration.WMASK,36);
 			usbres.buf[0] = 1;
 
-			generate_device_key(msg->buf, usbres.buf);
+			//FIXME DEVICE KEY
+			generate_device_key(usbres.buf, appdata.tmp);
 
 			break;
 

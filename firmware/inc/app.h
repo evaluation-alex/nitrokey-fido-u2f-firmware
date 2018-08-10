@@ -148,7 +148,14 @@ struct APP_DATA
 #define U2F_CONFIG_BOOTLOADER			0x88
 #define U2F_CONFIG_BOOTLOADER_DESTROY	0x89
 #define U2F_CONFIG_ATECC_PASSTHROUGH	0x8a
+#define U2F_CONFIG_LOAD_RMASK_KEY		0x8b
 
+
+// 1 page - 64 bytes
+extern struct DevConf{
+	uint8_t RMASK[36];
+	uint8_t WMASK[36];
+} device_configuration;
 
 struct config_msg
 {

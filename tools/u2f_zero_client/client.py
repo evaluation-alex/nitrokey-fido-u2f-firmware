@@ -168,6 +168,7 @@ class commands:
     U2F_CONFIG_BOOTLOADER = 0x88
     U2F_CONFIG_BOOTLOADER_DESTROY = 0x89
     U2F_CONFIG_ATECC_PASSTHROUGH = 0x8a
+    U2F_CONFIG_LOAD_READ_KEY = 0x8b
 
     U2F_CUSTOM_RNG = 0x21
     U2F_CUSTOM_SEED = 0x22
@@ -382,6 +383,17 @@ def do_configure(h,pemkey,output, reuse=False):
     data = read_n_tries(h,5,64,1000)
     if data[1] != 1:
         die('failed loading write key')
+
+    print('wkey: '+ repr(data[2:]))
+
+
+    print('rkey: '+repr(binascii.unhexlify(rkey)))
+    print('rkey: '+repr([ord(x) for x in binascii.unhexlify(rkey)]))
+    h.write([0,commands.U2F_CONFIG_LOAD_READ_KEY]+[ord(x) for x in binascii.unhexlify(rkey)])
+    data = read_n_tries(h,5,64,1000)
+    if data[1] != 1:
+        die('failed loading read key')
+    print('rkey: '+ repr(data[2:]))
 
 
     attestkey = ecdsa.SigningKey.from_pem(open(pemkey).read())
