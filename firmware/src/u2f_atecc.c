@@ -149,16 +149,14 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 	memset(private_key,0,4);
 	memmove(private_key+4, res_digest.buf, 32);
 
-	for (i=4; i<36; i++)
-	{
-		private_key[i] ^= device_configuration.RMASK[i];
-	}
+	eeprom_xor(EEPROM_DATA_RMASK, private_key+4, 32);
+
 	watchdog();
-	compute_key_hash(private_key, device_configuration.WMASK, U2F_TEMP_KEY_SLOT);
+	compute_key_hash(private_key, EEPROM_DATA_WMASK, U2F_TEMP_KEY_SLOT);
 	memmove(handle+4, res_digest.buf, 32);  // size of key handle must be 36+8
 
 
-	if ( atecc_privwrite(U2F_TEMP_KEY_SLOT, private_key, device_configuration.WMASK, handle+4) != 0)
+	if ( atecc_privwrite(U2F_TEMP_KEY_SLOT, private_key, EEPROM_DATA_WMASK, handle+4) != 0)
 	{
 		return -1;
 	}
@@ -196,11 +194,10 @@ int8_t u2f_load_key(uint8_t * handle, uint8_t * appid)
 
 	memset(private_key,0,4);
 	memmove(private_key+4, res_digest.buf, 32);
-	for (i=4; i<36; i++)
-	{
-		private_key[i] ^= device_configuration.RMASK[i];
-	}
-	return atecc_privwrite(U2F_TEMP_KEY_SLOT, private_key, device_configuration.WMASK, handle+4);
+
+	eeprom_xor(EEPROM_DATA_RMASK, private_key+4, 32);
+
+	return atecc_privwrite(U2F_TEMP_KEY_SLOT, private_key, EEPROM_DATA_WMASK, handle+4);
 }
 
 static void gen_u2f_zero_tag(uint8_t * dst, uint8_t * appid, uint8_t * handle)

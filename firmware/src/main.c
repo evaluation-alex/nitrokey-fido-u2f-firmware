@@ -124,8 +124,6 @@ int16_t main(void) {
 	IE_EA = 1;
 	watchdog();
 
-	read_masks();
-
 	if (RSTSRC & RSTSRC_WDTRSF__SET)
 	{
 		//error = ERROR_DAMN_WATCHDOG;

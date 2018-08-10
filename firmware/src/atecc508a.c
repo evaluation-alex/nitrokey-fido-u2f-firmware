@@ -42,8 +42,10 @@ uint8_t SHA_FLAGS = 0;
 uint8_t SHA_HMAC_KEY = 0;
 struct atecc_response res_digest;
 
+#ifdef ATECC_SETUP_DEVICE
 // 1 page - 64 bytes
 struct DevConf device_configuration;
+
 
 int8_t read_masks(){
 	memset(&device_configuration, 42, sizeof(device_configuration));
@@ -56,6 +58,7 @@ int8_t read_masks(){
 int8_t write_masks(){
 	eeprom_write(EEPROM_DATA_MASKS, &device_configuration, sizeof(device_configuration));
 }
+#endif
 
 int8_t atecc_send(uint8_t cmd, uint8_t p1, uint16_t p2,
 					uint8_t * buf, uint8_t len)
@@ -236,16 +239,16 @@ void u2f_sha256_finish()
  * Makes hash of PRIVWRITE(slot) command's payload, key and mask
  * out: internal ATECC's TempKey buffer
  */
-void compute_key_hash(uint8_t * key, uint8_t * mask, int slot)
+void compute_key_hash(uint8_t * key, uint16_t mask, int slot)
 {
+	eeprom_read(mask, appdata.tmp, 32);
+
+	u2f_sha256_start();
+	u2f_sha256_update(appdata.tmp, 32);
+
 	// key must start with 4 zeros
 	memset(appdata.tmp,0,28);
 	memmove(appdata.tmp + 28, key, 36);
-
-	u2f_sha256_start();
-
-	u2f_sha256_update(mask,32);
-
 
 	appdata.tmp[0] = ATECC_CMD_PRIVWRITE;
 	appdata.tmp[1] = ATECC_PRIVWRITE_ENC;
@@ -282,19 +285,16 @@ int atecc_prep_encryption()
 	return 0;
 }
 
-int atecc_privwrite(uint16_t keyslot, uint8_t * key, uint8_t * mask, uint8_t * digest)
+int atecc_privwrite(uint16_t keyslot, uint8_t * key, uint16_t mask, uint8_t * digest)
 {
 	struct atecc_response res;
 	uint8_t i;
 
-
-
 	atecc_prep_encryption();
 
-	for (i=0; i<36; i++)
-	{
-		appdata.tmp[i] = key[i] ^ mask[i];
-	}
+	memmove(appdata.tmp, key, 36);
+	eeprom_xor(mask, appdata.tmp, 36);
+
 	memmove(appdata.tmp+36, digest, 32);
 
 	if( atecc_send_recv(ATECC_CMD_PRIVWRITE,
@@ -811,11 +811,11 @@ void atecc_setup_device(struct config_msg * msg)
 			memset(trans_key,0,36);
 			memmove(trans_key+4,msg->buf,32);
 			usbres.buf[0] = 1;
-			compute_key_hash(trans_key,  write_key, U2F_ATTESTATION_KEY_SLOT);
+			compute_key_hash(trans_key,  EEPROM_DATA_WMASK, U2F_ATTESTATION_KEY_SLOT);
 
 			u2f_prints("write key: "); dump_hex(write_key,36);
 
-			if (atecc_privwrite(U2F_ATTESTATION_KEY_SLOT, trans_key, write_key, res_digest.buf) != 0)
+			if (atecc_privwrite(U2F_ATTESTATION_KEY_SLOT, trans_key, EEPROM_DATA_WMASK, res_digest.buf) != 0)
 			{
 //				The slot indicated by this command must be configured via KeyConfig.Private to contain an ECC private
 //				key, and SlotConfig.IsSecret must be set to one, or else this command will return an error. If the slot is
