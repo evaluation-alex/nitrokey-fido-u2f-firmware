@@ -182,5 +182,6 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 
 int8_t atecc_write_eeprom(uint8_t base, uint8_t offset, uint8_t* srcbuf, uint8_t len);
 
+int8_t read_masks();
 
 #endif /* ATECC508A_H_ */
