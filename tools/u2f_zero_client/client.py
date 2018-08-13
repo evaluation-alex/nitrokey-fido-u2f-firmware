@@ -383,7 +383,8 @@ def do_configure(h,pemkey,output, reuse=False):
     h.write([0,commands.U2F_CONFIG_LOAD_WRITE_KEY]+[ord(x) for x in binascii.unhexlify(wkey)])
     data = read_n_tries(h,5,64,1000)
     if data[1] != 1:
-        die('failed loading write key')
+        print('recv wkey: ' + repr(data))
+        die('failed loading write key ({})'.format(data[1]))
 
     print('wkey: '+ repr(data[2:]))
 
