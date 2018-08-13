@@ -641,6 +641,59 @@ uint8_t generate_random_data(uint8_t *out_buf){
 	return 1;
 }
 
+void generate_mask(uint8_t *output, uint8_t wkey){
+	u2f_prints("generating mask ... ");	dump_hex(&wkey,1);
+
+	if (generate_random_data(output+32) != 0){
+		u2f_prints("failed\r\n");
+		output[0] = 0;
+		return;
+	}
+	u2f_prints("generated random output+32: "); dump_hex(output+32,32);
+
+	if (wkey == 1){
+		memmove(trans_key, output+32, 32);
+		u2f_prints("generated trans_key: "); dump_hex(trans_key,32);
+
+		if(atecc_send_recv(ATECC_CMD_WRITE,
+				ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_MASTER_KEY_SLOT),
+				trans_key, 32,
+				output, 32, NULL) != 0)
+		{
+			u2f_prints("writing master key failed\r\n");
+			return;
+		}
+	}
+
+	u2f_sha256_start();
+	u2f_sha256_update(output+32, 32);
+
+	memset(output, 0, 64);
+	output[0] = 0x15;
+	output[1] = 0x02;
+	output[2] = 0x01;
+	output[3] = 0;
+	output[4] = 0xee;
+	output[5] = 0x01;
+	output[6] = 0x23;
+	u2f_sha256_update(output, 64);
+
+	u2f_sha256_finish();
+
+	memmove(output, res_digest.buf, 32);
+	u2f_prints("generated key mask output: "); dump_hex(output,32);
+
+	//stage 2
+	u2f_sha256_start();
+	u2f_sha256_update(output, 32);
+	u2f_sha256_finish();
+
+	memmove(output+32, res_digest.buf, 8);
+	u2f_prints("generated key mask2 output: "); dump_hex(output+32,8);
+
+	u2f_prints("generated key mask: "); dump_hex(output,32+8);
+}
+
 void generate_device_key(uint8_t *output, uint8_t *buf){
 	u2f_prints("generating device key ... ");
 
@@ -784,11 +837,12 @@ void atecc_setup_device(struct config_msg * msg)
 		case U2F_CONFIG_LOAD_RMASK_KEY:
 			u2f_prints("U2F_CONFIG_LOAD_RMASK_KEY\r\n");
 			u2f_prints("current read key: "); dump_hex(device_configuration.RMASK,36);
-			u2f_prints("incoming read key: "); dump_hex(msg->buf,36);
-			memmove(device_configuration.RMASK,msg->buf,36);
+
+			generate_mask(appdata.tmp, 0);
+			memmove(device_configuration.RMASK,appdata.tmp,36);
+
 			write_masks();
 			read_masks();
-			memmove(usbres.buf + 1 , device_configuration.RMASK, 36);
 			u2f_prints("new set read key: "); dump_hex(device_configuration.RMASK,36);
 			usbres.buf[0] = 1;
 			memmove(usbres.buf+1,device_configuration.RMASK,36);
@@ -797,13 +851,16 @@ void atecc_setup_device(struct config_msg * msg)
 		case U2F_CONFIG_LOAD_WRITE_KEY:
 			u2f_prints("U2F_CONFIG_LOAD_WRITE_KEY\r\n");
 			u2f_prints("current write key: "); dump_hex(device_configuration.WMASK,36);
-			memmove(write_key,msg->buf,36);
-			memmove(device_configuration.WMASK,msg->buf,36);
+
+			generate_mask(appdata.tmp, 1);
+			memmove(write_key,appdata.tmp,36);
+			memmove(device_configuration.WMASK,appdata.tmp,36);
+
 			write_masks();
 			read_masks();
-			memmove(usbres.buf + 1 , device_configuration.WMASK, 36);
 			u2f_prints("new set write key: "); dump_hex(device_configuration.WMASK,36);
 			usbres.buf[0] = 1;
+			memmove(usbres.buf + 1 , device_configuration.WMASK, 36);
 			break;
 
 		case U2F_CONFIG_GEN_DEVICE_KEY:
