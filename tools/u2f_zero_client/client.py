@@ -341,61 +341,17 @@ def do_configure(h,pemkey,output, reuse=False):
 
     time.sleep(0.250)
 
-    #h.write([0,commands.U2F_CONFIG_GENKEY])
-    #data = read_n_tries(h,5,64,1000)
-    #data = array.array('B',data).tostring()
-    #pubkey = binascii.hexlify(data)
 
-    wkey = []
-    rkey = []
-
-    if not reuse or not os.path.exists('wkey') or not os.path.exists('rkey'):
-        print('Generating wkey and rkey')
-        wkey = os.urandom(32)
-        rkey = os.urandom(32)
-        with open('wkey','w+') as f:
-            f.write(wkey)
-        with open('rkey', 'w+') as f:
-            f.write(rkey)
-    else:
-        print('Reusing generated before wkey and rkey')
-        with open('wkey', 'r') as f:
-            wkey = f.read(1024)
-        with open('rkey', 'r') as f:
-            rkey = f.read(1024)
-
-    wkey = [ord(x) for x in wkey]
-    rkey = [ord(x) for x in rkey]
-
-    h.write([0,commands.U2F_CONFIG_LOAD_TRANS_KEY]+wkey)
-    data = read_n_tries(h,5,64,1000)
-    if data[1] != 1:
-        die('failed writing master key')
-
-
-    wkey = get_write_mask(''.join([chr(x) for x in wkey]))
-    print('wkey',wkey)
-    rkey = get_write_mask(''.join([chr(x) for x in rkey]))
-
-
-    print('wkey: '+repr(binascii.unhexlify(wkey)))
-    print('wkey: '+repr([ord(x) for x in binascii.unhexlify(wkey)]))
-    h.write([0,commands.U2F_CONFIG_LOAD_WRITE_KEY]+[ord(x) for x in binascii.unhexlify(wkey)])
+    h.write([0,commands.U2F_CONFIG_LOAD_WRITE_KEY])
     data = read_n_tries(h,5,64,1000)
     if data[1] != 1:
         print('recv wkey: ' + repr(data))
         die('failed loading write key ({})'.format(data[1]))
 
-    print('wkey: '+ repr(data[2:]))
-
-
-    print('rkey: '+repr(binascii.unhexlify(rkey)))
-    print('rkey: '+repr([ord(x) for x in binascii.unhexlify(rkey)]))
-    h.write([0,commands.U2F_CONFIG_LOAD_READ_KEY]+[ord(x) for x in binascii.unhexlify(rkey)])
+    h.write([0,commands.U2F_CONFIG_LOAD_READ_KEY])
     data = read_n_tries(h,5,64,1000)
     if data[1] != 1:
         die('failed loading read key')
-    print('rkey: '+ repr(data[2:]))
 
 
     attestkey = ecdsa.SigningKey.from_pem(open(pemkey).read())
@@ -414,8 +370,6 @@ def do_configure(h,pemkey,output, reuse=False):
         die('failed generating device key' + repr(data[:2]))
     print('generated device key: ' + repr(data[2:]))
 
-    print('writing keys to ', output)
-    open(output,'w+').write(wkey + '\n' + rkey + '\n')
 
     print( 'Done.  Putting device in bootloader mode.')
     h.write([0,commands.U2F_CONFIG_BOOTLOADER])
