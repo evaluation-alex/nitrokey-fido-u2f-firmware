@@ -48,15 +48,19 @@ struct DevConf device_configuration;
 
 
 int8_t read_masks(){
-	memset(&device_configuration, 42, sizeof(device_configuration));
-	eeprom_read(EEPROM_DATA_MASKS, &device_configuration, sizeof(device_configuration));
 	u2f_prints("reading masks -----\r\n");
+	memset(&device_configuration, 42, sizeof(device_configuration));
+	eeprom_read(EEPROM_DATA_RMASK, device_configuration.RMASK, sizeof(device_configuration.RMASK));
+	eeprom_read(EEPROM_DATA_WMASK, device_configuration.WMASK, sizeof(device_configuration.WMASK));
 	u2f_prints("current write key: "); dump_hex(device_configuration.WMASK,36);
 	u2f_prints("current read key: "); dump_hex(device_configuration.RMASK,36);
 }
 
 int8_t write_masks(){
-	eeprom_write(EEPROM_DATA_MASKS, &device_configuration, sizeof(device_configuration));
+	eeprom_erase(EEPROM_DATA_RMASK);
+	eeprom_erase(EEPROM_DATA_WMASK);
+	eeprom_write(EEPROM_DATA_RMASK, device_configuration.RMASK, sizeof(device_configuration.RMASK));
+	eeprom_write(EEPROM_DATA_WMASK, device_configuration.WMASK, sizeof(device_configuration.WMASK));
 }
 #endif
 
