@@ -784,12 +784,14 @@ void atecc_setup_device(struct config_msg * msg)
 		case U2F_CONFIG_LOAD_RMASK_KEY:
 			u2f_prints("U2F_CONFIG_LOAD_RMASK_KEY\r\n");
 			u2f_prints("current read key: "); dump_hex(device_configuration.RMASK,36);
+			u2f_prints("incoming read key: "); dump_hex(msg->buf,36);
 			memmove(device_configuration.RMASK,msg->buf,36);
 			write_masks();
 			read_masks();
 			memmove(usbres.buf + 1 , device_configuration.RMASK, 36);
-			u2f_prints("read key: "); dump_hex(device_configuration.RMASK,36);
+			u2f_prints("new set read key: "); dump_hex(device_configuration.RMASK,36);
 			usbres.buf[0] = 1;
+			memmove(usbres.buf+1,device_configuration.RMASK,36);
 			break;
 
 		case U2F_CONFIG_LOAD_WRITE_KEY:
@@ -800,7 +802,7 @@ void atecc_setup_device(struct config_msg * msg)
 			write_masks();
 			read_masks();
 			memmove(usbres.buf + 1 , device_configuration.WMASK, 36);
-			u2f_prints("write key: "); dump_hex(device_configuration.WMASK,36);
+			u2f_prints("new set write key: "); dump_hex(device_configuration.WMASK,36);
 			usbres.buf[0] = 1;
 			break;
 
