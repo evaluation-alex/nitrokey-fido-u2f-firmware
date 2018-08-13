@@ -771,24 +771,9 @@ void atecc_setup_device(struct config_msg * msg)
 			break;
 
 		case U2F_CONFIG_LOAD_TRANS_KEY:
-		{
 			u2f_prints("U2F_CONFIG_LOAD_TRANS_KEY\r\n");
-
-			usbres.buf[0] = 1; //success
-			memmove(trans_key, msg->buf, 32);
-
-			if(atecc_send_recv(ATECC_CMD_WRITE,
-					ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_MASTER_KEY_SLOT), trans_key, 32,
-					buf, sizeof(buf), &res) != 0)
-			{
-				usbres.buf[0] = 2; //failed, stage 2, key writing
-				u2f_prints("writing master key failed\r\n");
-			}
-
-			memset(appdata.tmp,0,sizeof(appdata.tmp));
-			memset(trans_key,0,sizeof(trans_key));
+			u2f_prints("Use U2F_CONFIG_LOAD_WRITE_KEY\r\n");
 			break;
-		}
 
 		case U2F_CONFIG_IS_BUILD:
 			u2f_prints("U2F_CONFIG_IS_BUILD\r\n");
