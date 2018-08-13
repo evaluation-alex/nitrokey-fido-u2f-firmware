@@ -14,6 +14,7 @@
 #include <string.h>
 #include <efm8_usb.h>
 #include "descriptors.h"
+#include "app.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -127,7 +128,17 @@ SI_SEGMENT_VARIABLE(configDesc[],
 
 #define MFR_STRING                             "Nitrokey"
 #define PROD_STRING                            "Nitrokey FIDO U2F"
+
+#ifdef _PRODUCTION_RELEASE
 #define SER_STRING 							   "CAFEBABEFFFFFFFF"
+#else
+#ifdef ATECC_SETUP_DEVICE
+#define SER_STRING 							   "CAFEBABEF-setup-"
+#else
+#define SER_STRING 							   "CAFEBABEF-prod--"
+#endif
+#endif
+
 #define INT0_STRING                            "Nitrokey FIDO U2F"
 
 
