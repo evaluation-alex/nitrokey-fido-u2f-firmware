@@ -169,6 +169,7 @@ class commands:
     U2F_CONFIG_BOOTLOADER_DESTROY = 0x89
     U2F_CONFIG_ATECC_PASSTHROUGH = 0x8a
     U2F_CONFIG_LOAD_READ_KEY = 0x8b
+    U2F_CONFIG_GEN_DEVICE_KEY = 0x8c
 
     U2F_CUSTOM_RNG = 0x21
     U2F_CUSTOM_SEED = 0x22
@@ -405,6 +406,12 @@ def do_configure(h,pemkey,output, reuse=False):
     data = read_n_tries(h,5,64,1000)
     if data[1] != 1:
         die('failed loading attestation key')
+
+    h.write([0, commands.U2F_CONFIG_GEN_DEVICE_KEY])
+    data = read_n_tries(h, 5, 64, 1000)
+    if data[1] != 1:
+        die('failed generating device key' + repr(data[:2]))
+    print('generated device key: ' + repr(data[2:]))
 
     print('writing keys to ', output)
     open(output,'w+').write(wkey + '\n' + rkey + '\n')
