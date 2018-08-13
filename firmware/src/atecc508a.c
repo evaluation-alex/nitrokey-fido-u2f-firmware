@@ -798,10 +798,11 @@ void atecc_setup_device(struct config_msg * msg)
 			memmove(usbres.buf + 1 , device_configuration.WMASK, 36);
 			u2f_prints("write key: "); dump_hex(device_configuration.WMASK,36);
 			usbres.buf[0] = 1;
+			break;
 
-			//FIXME DEVICE KEY
+		case U2F_CONFIG_GEN_DEVICE_KEY:
+			u2f_prints("U2F_CONFIG_GEN_DEVICE_KEY\r\n");
 			generate_device_key(usbres.buf, appdata.tmp);
-
 			break;
 
 		case U2F_CONFIG_LOAD_ATTEST_KEY:
