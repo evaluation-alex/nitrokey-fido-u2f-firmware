@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include "custom.h"
 #include "bsp.h"
+#include "gpio.h"
 #include "atecc508a.h"
 
 uint8_t custom_command(struct u2f_hid_msg * msg)
@@ -73,7 +74,7 @@ uint8_t custom_command(struct u2f_hid_msg * msg)
 #endif
 #ifdef U2F_SUPPORT_WINK
 		case U2F_CUSTOM_WINK:
-			LedBlink(5, 300);
+			led_blink(5, 300);
 			break;
 #endif
 #ifdef U2F_USING_BOOTLOADER
