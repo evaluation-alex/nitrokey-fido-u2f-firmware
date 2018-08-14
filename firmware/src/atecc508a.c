@@ -458,6 +458,7 @@ static void dump_config(uint8_t* buf)
 		u2f_prints("hex: "); dump_hex(c,2);
 		_PRINT(c->writeconfig);
 		_PRINT(c->writekey);
+		_PRINT(c->secret);
 		_PRINT(c->encread);
 		_PRINT(c->limiteduse);
 		_PRINT(c->nomac);
