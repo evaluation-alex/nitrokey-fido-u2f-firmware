@@ -36,7 +36,7 @@ void eeprom_init()
 	if (secbyte == 0xff)
 	{
 		eeprom_erase(0xFBC0);
-		secbyte = -32;
+		secbyte = -80;
 		eeprom_write(0xFBFF, &secbyte, 1);
 	}
 }
