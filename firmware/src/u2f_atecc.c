@@ -136,7 +136,7 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 		return -1;
 	}
 
-	SHA_HMAC_KEY = U2F_MASTER_KEY_SLOT;
+	SHA_HMAC_KEY = U2F_DEVICE_KEY_SLOT;
 	SHA_FLAGS = ATECC_SHA_HMACSTART;
 	u2f_sha256_start();
 	u2f_sha256_update(appid,32);
@@ -149,16 +149,14 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 	memset(private_key,0,4);
 	memmove(private_key+4, res_digest.buf, 32);
 
-	for (i=4; i<36; i++)
-	{
-		private_key[i] ^= RMASK[i];
-	}
+	eeprom_xor(EEPROM_DATA_RMASK, private_key+4, 32);
+
 	watchdog();
-	compute_key_hash(private_key,  WMASK, U2F_TEMP_KEY_SLOT);
+	compute_key_hash(private_key, EEPROM_DATA_WMASK, U2F_TEMP_KEY_SLOT);
 	memmove(handle+4, res_digest.buf, 32);  // size of key handle must be 36+8
 
 
-	if ( atecc_privwrite(U2F_TEMP_KEY_SLOT, private_key, WMASK, handle+4) != 0)
+	if ( atecc_privwrite(U2F_TEMP_KEY_SLOT, private_key, EEPROM_DATA_WMASK, handle+4) != 0)
 	{
 		return -1;
 	}
@@ -183,10 +181,9 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 int8_t u2f_load_key(uint8_t * handle, uint8_t * appid)
 {
 	uint8_t private_key[36];
-	int i;
 
 	watchdog();
-	SHA_HMAC_KEY = U2F_MASTER_KEY_SLOT;
+	SHA_HMAC_KEY = U2F_DEVICE_KEY_SLOT;
 	SHA_FLAGS = ATECC_SHA_HMACSTART;
 	u2f_sha256_start();
 	u2f_sha256_update(appid,32);
@@ -196,22 +193,24 @@ int8_t u2f_load_key(uint8_t * handle, uint8_t * appid)
 
 	memset(private_key,0,4);
 	memmove(private_key+4, res_digest.buf, 32);
-	for (i=4; i<36; i++)
-	{
-		private_key[i] ^= RMASK[i];
-	}
-	return atecc_privwrite(U2F_TEMP_KEY_SLOT, private_key, WMASK, handle+4);
+
+	eeprom_xor(EEPROM_DATA_RMASK, private_key+4, 32);
+
+	return atecc_privwrite(U2F_TEMP_KEY_SLOT, private_key, EEPROM_DATA_WMASK, handle+4);
 }
 
 static void gen_u2f_zero_tag(uint8_t * dst, uint8_t * appid, uint8_t * handle)
 {
-	const char * u2f_zero_const = "\xc1\xff\x67\x0d\x66\xe5\x55\xbb\xdc\x56\xaf\x7b\x41\x27\x4a\x21";
-	SHA_HMAC_KEY = U2F_MASTER_KEY_SLOT;
+	SHA_HMAC_KEY = U2F_DEVICE_KEY_SLOT;
 	SHA_FLAGS = ATECC_SHA_HMACSTART;
 	u2f_sha256_start();
 
 	u2f_sha256_update(handle,U2F_KEY_HANDLE_KEY_SIZE);
-	u2f_sha256_update(u2f_zero_const,16);
+
+	eeprom_read(EEPROM_DATA_U2F_CONST, appdata.tmp, 16);
+	u2f_sha256_update(appdata.tmp,16);
+	memset(appdata.tmp, 0, 16);
+
 	u2f_sha256_update(appid,32);
 
 	SHA_FLAGS = ATECC_SHA_HMACEND;

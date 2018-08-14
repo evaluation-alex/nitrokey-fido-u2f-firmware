@@ -163,9 +163,9 @@ extern struct  atecc_response res_digest;
 extern void u2f_sha256_start  ();
 extern void u2f_sha256_update (uint8_t * buf, uint8_t len);
 extern void u2f_sha256_finish ();
-extern void compute_key_hash  (uint8_t * key, uint8_t * mask, int slot);
+extern void compute_key_hash  (uint8_t * key, uint16_t mask, int slot);
 extern int atecc_prep_encryption();
-extern int atecc_privwrite(uint16_t keyslot, uint8_t * key, uint8_t * mask, uint8_t * digest);
+extern int atecc_privwrite(uint16_t keyslot, uint8_t * key, uint16_t mask, uint8_t * digest);
 
 void atecc_idle();
 void atecc_wake();
@@ -182,5 +182,6 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 
 int8_t atecc_write_eeprom(uint8_t base, uint8_t offset, uint8_t* srcbuf, uint8_t len);
 
+int8_t read_masks();
 
 #endif /* ATECC508A_H_ */

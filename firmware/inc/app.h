@@ -43,6 +43,8 @@
 #define U2F_ATTESTATION_KEY_SLOT	15
 #define U2F_MASTER_KEY_SLOT			1
 #define U2F_TEMP_KEY_SLOT			2
+#define U2F_WKEY_KEY_SLOT			1
+#define U2F_DEVICE_KEY_SLOT			3
 
 // Comment these out to fit firmware with a bootloader.
 #define U2F_SUPPORT_WINK
@@ -145,6 +147,17 @@ struct APP_DATA
 #define U2F_CONFIG_LOAD_ATTEST_KEY		0x87
 #define U2F_CONFIG_BOOTLOADER			0x88
 #define U2F_CONFIG_BOOTLOADER_DESTROY	0x89
+#define U2F_CONFIG_ATECC_PASSTHROUGH	0x8a
+#define U2F_CONFIG_LOAD_RMASK_KEY		0x8b
+#define U2F_CONFIG_GEN_DEVICE_KEY		0x8c
+
+#ifdef ATECC_SETUP_DEVICE
+// 1 page - 64 bytes
+extern struct DevConf{
+	uint8_t RMASK[36];
+	uint8_t WMASK[36];
+} device_configuration;
+#endif
 
 struct config_msg
 {
@@ -154,8 +167,6 @@ struct config_msg
 
 extern uint8_t hidmsgbuf[64];
 extern data struct APP_DATA appdata;
-extern code uint8_t WMASK[];
-extern code uint8_t RMASK[];
 
 void set_app_u2f_hid_msg(struct u2f_hid_msg * msg );
 

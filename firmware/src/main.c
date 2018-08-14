@@ -124,14 +124,12 @@ int16_t main(void) {
 	IE_EA = 1;
 	watchdog();
 
-
-
 	if (RSTSRC & RSTSRC_WDTRSF__SET)
 	{
 		//error = ERROR_DAMN_WATCHDOG;
 		u2f_prints("r");
 	}
-	u2f_prints("U2F ZERO\r\n");
+	u2f_prints("U2F ZERO ==================================\r\n");
 
 	run_tests();
 	ButtonState = BST_UNPRESSED;
@@ -205,6 +203,7 @@ int16_t main(void) {
 
 			}
 #else
+#ifndef ON_ERROR_RESET_IMMEDIATELY
 			//LedBlink(LED_BLINK_NUM_INF, 375);       // Blink wont work because of the following
 			for (i=0; i<0x400;i++)                    // wipe ram
 			{
@@ -212,10 +211,16 @@ int16_t main(void) {
 				watchdog();
 			}
 #endif
+#endif
 
+#ifdef ON_ERROR_RESET_IMMEDIATELY
+			u2f_delay(100);
+			RSTSRC = RSTSRC_SWRSF__SET | RSTSRC_PORSF__SET;
+#else
 			// wait for watchdog to reset
 			while(1)
 				;
+#endif
 		}
 	}
 }

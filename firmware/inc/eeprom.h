@@ -32,12 +32,21 @@
 void eeprom_init();
 
 void eeprom_read(uint16_t addr, uint8_t * buf, uint8_t len);
+void eeprom_xor(uint16_t addr, uint8_t * out_buf, uint8_t len);
 
 void _eeprom_write(uint16_t addr, uint8_t * buf, uint8_t len, uint8_t flags);
+
 
 #define eeprom_write(a,b,l) 		_eeprom_write(a,b,l,0x1)
 #define eeprom_erase(a) 			_eeprom_write(a,appdata.tmp,1,0x3)
 
 #define EEPROM_DATA_START 			0xF800
+// 2*36 bytes
+// pages are 64-bytes each, required to be written separately
+#define EEPROM_DATA_MASKS 			EEPROM_DATA_START
+#define EEPROM_DATA_RMASK 			(EEPROM_DATA_MASKS + 0)
+#define EEPROM_DATA_WMASK 			(EEPROM_DATA_RMASK + 64)
+#define EEPROM_DATA_U2F_CONST		(EEPROM_DATA_WMASK + 64)
+
 
 #endif /* EEPROM_H_ */

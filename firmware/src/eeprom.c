@@ -27,6 +27,7 @@
 #include <stdint.h>
 
 #include "eeprom.h"
+#include "bsp.h"
 
 void eeprom_init()
 {
@@ -40,11 +41,27 @@ void eeprom_init()
 	}
 }
 
+void eeprom_xor(uint16_t addr, uint8_t * out_buf, uint8_t len){
+	uint8_t code * eepaddr =  (uint8_t code *) addr;
+	bit old_int;
+
+	watchdog();
+	while(len--)
+	{
+		old_int = IE_EA;
+		IE_EA = 0;
+		*out_buf++ ^= *eepaddr++;
+		IE_EA = old_int;
+	}
+	watchdog();
+}
+
 void eeprom_read(uint16_t addr, uint8_t * buf, uint8_t len)
 {
 	uint8_t code * eepaddr =  (uint8_t code *) addr;
 	bit old_int;
 
+	watchdog();
 	while(len--)
 	{
 		old_int = IE_EA;
@@ -52,6 +69,7 @@ void eeprom_read(uint16_t addr, uint8_t * buf, uint8_t len)
 		*buf++ = *eepaddr++;
 		IE_EA = old_int;
 	}
+	watchdog();
 }
 
 void _eeprom_write(uint16_t addr, uint8_t * buf, uint8_t len, uint8_t flags)
