@@ -369,7 +369,9 @@ def do_configure(h,pemkey,output, reuse=False):
     data = read_n_tries(h, 5, 64, 1000)
     if data[1] != 1:
         die('failed generating device key' + repr(data[:2]))
-    print('generated device key: ' + repr(data[2:]))
+    print('generated device key: ' + repr(data[2:32+2]))
+    print('generated u2f_zero_const: ' + repr(data[32+2:32+2+16]))
+    print('full response: ' + repr(data))
 
 
     print( 'Done.  Putting device in bootloader mode.')

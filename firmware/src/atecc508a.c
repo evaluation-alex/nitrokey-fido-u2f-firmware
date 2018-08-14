@@ -722,6 +722,14 @@ void generate_device_key(uint8_t *output, uint8_t *buf, uint8_t buflen){
 	}
 	u2f_prints("writing device key succeed\r\n");
 
+	// generate u2f_zero_const
+	generate_random_data(buf);
+	eeprom_erase(EEPROM_DATA_U2F_CONST);
+	eeprom_write(EEPROM_DATA_U2F_CONST, buf, 16);
+#ifndef _PRODUCTION_RELEASE
+	u2f_prints("u2f_zero_const: "); dump_hex(buf,16);
+	memmove(output+1+32, buf, 16);
+#endif
 }
 
 typedef struct atecc_command{
