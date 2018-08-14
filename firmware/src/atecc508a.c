@@ -304,6 +304,28 @@ void compute_key_hash(uint8_t * key, uint16_t mask, int slot)
 	u2f_sha256_finish();
 }
 
+void compute_write_hash(uint8_t * key, uint16_t mask, int slot)
+{
+	eeprom_read(mask, appdata.tmp, 32);
+
+	u2f_sha256_start();
+	u2f_sha256_update(appdata.tmp, 32);
+
+	memset(appdata.tmp,0,7+25);
+	memmove(appdata.tmp +7+25, key, 32);
+
+//	ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT)
+	appdata.tmp[0] = ATECC_CMD_WRITE;
+	appdata.tmp[1] = ATECC_RW_DATA|ATECC_RW_EXT;
+	appdata.tmp[2] = slot;
+	appdata.tmp[3] = 0;
+	appdata.tmp[4] = 0xee;
+	appdata.tmp[5] = 0x01;
+	appdata.tmp[6] = 0x23;
+
+	u2f_sha256_update(appdata.tmp,7+25 +32);
+	u2f_sha256_finish();
+}
 
 int atecc_prep_encryption()
 {
@@ -751,8 +773,15 @@ void generate_device_key(uint8_t *output, uint8_t *buf, uint8_t buflen){
 	memmove(output+1, trans_key, 32);
 #endif
 
+	compute_write_hash(trans_key,  EEPROM_DATA_WMASK, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT));
+
+	atecc_prep_encryption();
+	memmove(appdata.tmp, trans_key, 32);
+	memmove(appdata.tmp+32, res_digest.buf, 32);
+
 	if(atecc_send_recv(ATECC_CMD_WRITE,
-		ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT), trans_key, 32,
+		ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT),
+		appdata.tmp, 32+32,
 		buf, buflen, NULL) != 0)
 	{
 		output[0] = 2; //failed, stage 2, key writing
