@@ -695,7 +695,7 @@ void generate_mask(uint8_t *output, uint8_t wkey){
 	u2f_prints("generated key mask: "); dump_hex(output,32+8);
 }
 
-void generate_device_key(uint8_t *output, uint8_t *buf){
+void generate_device_key(uint8_t *output, uint8_t *buf, uint8_t buflen){
 	u2f_prints("generating device key ... ");
 
 	if (generate_random_data(trans_key) == 0){
@@ -712,10 +712,9 @@ void generate_device_key(uint8_t *output, uint8_t *buf){
 	memmove(output+1, trans_key, 32);
 #endif
 
-
 	if(atecc_send_recv(ATECC_CMD_WRITE,
 		ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT), trans_key, 32,
-		buf, 70, NULL) != 0)
+		buf, buflen, NULL) != 0)
 	{
 		output[0] = 2; //failed, stage 2, key writing
 		u2f_prints("writing device key failed\r\n");
@@ -851,7 +850,7 @@ void atecc_setup_device(struct config_msg * msg)
 
 		case U2F_CONFIG_GEN_DEVICE_KEY:
 			u2f_prints("U2F_CONFIG_GEN_DEVICE_KEY\r\n");
-			generate_device_key(usbres.buf, appdata.tmp);
+			generate_device_key(usbres.buf, appdata.tmp, sizeof(appdata.tmp));
 			break;
 
 		case U2F_CONFIG_LOAD_ATTEST_KEY:
