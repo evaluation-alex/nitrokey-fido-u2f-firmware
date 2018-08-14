@@ -630,12 +630,13 @@ void atecc_setup_init(uint8_t * buf)
 }
 
 uint8_t generate_random_data(uint8_t *out_buf){
+	struct atecc_response res;
 	if (atecc_send_recv(ATECC_CMD_RNG,ATECC_RNG_P1,ATECC_RNG_P2,
 					NULL, 0,
 					appdata.tmp, sizeof(appdata.tmp),
-					NULL) == 0 )
+					&res) == 0 )
 		{
-			memmove(out_buf, appdata.tmp, 32);
+			memmove(out_buf, res.buf, 32);
 			return 0;
 		}
 	return 1;
