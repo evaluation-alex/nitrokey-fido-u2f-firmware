@@ -104,11 +104,11 @@ int16_t main(void) {
 	// ~200 ms interval watchdog
 	WDTCN = 4;
 
-	//watchdog();
+	watchdog();
 	init(&appdata);
 
 	// Enable interrupts
-	//IE_EA = 1;
+	IE_EA = 1;
 	watchdog();
 
 	if (RSTSRC & RSTSRC_WDTRSF__SET)
