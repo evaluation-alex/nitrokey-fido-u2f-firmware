@@ -181,7 +181,6 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 int8_t u2f_load_key(uint8_t * handle, uint8_t * appid)
 {
 	uint8_t private_key[36];
-	int i;
 
 	watchdog();
 	SHA_HMAC_KEY = U2F_DEVICE_KEY_SLOT;
