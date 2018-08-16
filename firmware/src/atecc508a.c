@@ -905,6 +905,12 @@ void atecc_setup_device(struct config_msg * msg)
 				 RSTSRC = RSTSRC_SWRSF__SET | RSTSRC_PORSF__SET;
 			}
 			break;
+		case U2F_CONFIG_BOOTLOADER_DESTROY:
+			eeprom_erase(EEPROM_PAGE_START(79-1));
+			eeprom_erase(EEPROM_PAGE_START(79-2));
+			eeprom_erase(EEPROM_PAGE_START(79-3));
+			usbres.buf[0] = 1;
+			break;
 #endif
 		default:
 			u2f_printb("invalid command: ",1,msg->cmd);
