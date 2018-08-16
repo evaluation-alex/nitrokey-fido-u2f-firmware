@@ -131,10 +131,10 @@ int16_t main(void) {
         button_manager();
         led_blink_manager();
         #ifdef __BUTTON_TEST__
-        if (!LedBlinkNum) {
-            if (IsButtonPressed()) { LedOn();  }
-            else                   { LedOff(); }
-        }
+//        if (!LedBlinkNum) {
+            if (button_get_press()) { led_on();  }
+            else                    { led_off(); }
+//        }
         #endif
 
 		if (!USBD_EpIsBusy(EP1OUT) && !USBD_EpIsBusy(EP1IN) && state != APP_HID_MSG)
