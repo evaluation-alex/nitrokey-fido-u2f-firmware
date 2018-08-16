@@ -23,78 +23,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  */
-#include <SI_EFM8UB3_Register_Enums.h>
-#include <stdint.h>
 
-#include "eeprom.h"
-#include "bsp.h"
+#ifndef GPIO_H_
+#define GPIO_H_
 
-void eeprom_init()
-{
-	uint8_t secbyte;
-	eeprom_read(0xFBFF,&secbyte,1);
-	if (secbyte == 0xff)
-	{
-		eeprom_erase(0xFBC0);
-		secbyte = -80;
-		eeprom_write(0xFBFF, &secbyte, 1);
-	}
-}
+void button_manager (void);
+uint8_t button_get_press (void);
 
-void eeprom_xor(uint16_t addr, uint8_t * out_buf, uint8_t len){
-	uint8_t code * eepaddr =  (uint8_t code *) addr;
-	bit old_int;
+void led_on (void);
+void led_off (void);
+void led_blink (uint8_t blink_num, uint16_t period_t);
+void led_blink_manager (void);
 
-	watchdog();
-	while(len--)
-	{
-		old_int = IE_EA;
-		IE_EA = 0;
-		*out_buf++ ^= *eepaddr++;
-		IE_EA = old_int;
-	}
-	watchdog();
-}
-
-void eeprom_read(uint16_t addr, uint8_t * buf, uint8_t len)
-{
-	uint8_t code * eepaddr =  (uint8_t code *) addr;
-	bit old_int;
-
-	watchdog();
-	while(len--)
-	{
-		old_int = IE_EA;
-		IE_EA = 0;
-		*buf++ = *eepaddr++;
-		IE_EA = old_int;
-	}
-	watchdog();
-}
-
-void _eeprom_write(uint16_t addr, uint8_t * buf, uint8_t len, uint8_t flags)
-{
-	uint8_t xdata * data eepaddr = (uint8_t xdata *) addr;
-	bit old_int;
-
-	while(len--)
-	{
-		old_int = IE_EA;
-		IE_EA = 0;
-		// Enable VDD monitor
-		VDM0CN = 0x80;
-		RSTSRC = 0x02;
-
-		// unlock key
-		FLKEY  = 0xA5;
-		FLKEY  = 0xF1;
-		PSCTL |= flags;
-
-		*eepaddr = *buf;
-		PSCTL &= ~flags;
-		IE_EA = old_int;
-
-		eepaddr++;
-		buf++;
-	}
-}
+#endif /* GPIO_H_ */

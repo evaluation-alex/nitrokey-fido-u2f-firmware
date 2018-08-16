@@ -27,7 +27,7 @@
 #ifndef APP_H_
 #define APP_H_
 
-#include <SI_EFM8UB1_Register_Enums.h>
+#include <SI_EFM8UB3_Register_Enums.h>
 #include <stdarg.h>
 #include "u2f_hid.h"
 
@@ -36,7 +36,7 @@
 #define BUTTON_MIN_PRESS_T_MS    750
 
 #define LED_BLINK_T_ON           100                                 // ms
-#define LED_BLINK_T_OFF          (LedBlinkPeriodT - LED_BLINK_T_ON)  // ms
+#define LED_BLINK_T_OFF          (led_blink_period_t - LED_BLINK_T_ON)  // ms
 #define LED_BLINK_NUM_INF        255
 
 // application settings
@@ -75,14 +75,6 @@
 	#define _SECURE_EEPROM
 #endif
 
-// efm8ub1 application eeprom memory mappings
-#define U2F_KEY_HEADER_ADDR		0xF800
-#define U2F_EEPROM_CONFIG		(U2F_KEY_HEADER_ADDR + 128)
-#define U2F_EEPROM_APP_IDS		(U2F_EEPROM_CONFIG + 64)
-
-#if ((U2F_ATTESTATION_KEY_SLOT * 32) > 768)
-#error "not enough eeprom"
-#endif
 
 //								{blue(0), green(0x5a), red(0)}
 #define U2F_DEFAULT_BRIGHTNESS					90
@@ -178,12 +170,6 @@ uint8_t get_app_state();
 
 void set_app_state(APP_STATE s);
 
-void     LedOn           (void);
-void     LedOff          (void);
-void     LedBlink        (uint8_t blink_num, uint16_t period_t);
-void     TaskLedBlink    (void);
-void     TaskButton      (void);
-uint8_t  IsButtonPressed (void);
 
 // should be called after initializing eeprom
 void u2f_init();
