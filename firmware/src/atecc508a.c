@@ -383,7 +383,7 @@ static void dump_signature_der(uint8_t * sig)
 
     // S value
     memmove(sigbuf+3+1+pad_r+32+1+1+pad_s,sig+32, 32);
-    u2f_prints("signature-der: "); dump_hex(sigbuf, get_signature_length(sig));
+//    u2f_prints("signature-der: "); dump_hex(sigbuf, get_signature_length(sig));
 }
 
 
