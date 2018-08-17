@@ -374,24 +374,25 @@ def do_configure(h,pemkey,output, reuse=False):
     print('full response: ' + repr(data))
 
 
-    print( 'Done.  Putting device in bootloader mode.')
-    h.write([0,commands.U2F_CONFIG_BOOTLOADER])
+    print( 'Done.  Erasing bootloader code pages on MCU.')
+    h.write([0,commands.U2F_CONFIG_BOOTLOADER_DESTROY])
     data = read_n_tries(h,5,64,1000)
-    if data[1] != 1:
-        die('failed to put device in bootloader mode.')
-
-def bootloader(h):
-    h.write([0,commands.U2F_CONFIG_BOOTLOADER])
-    h.write([0,0xff,0xff,0xff,0xff,commands.U2F_CONFIG_BOOTLOADER])
-    print('If this device has an enabled bootloader, the LED should be turned off.')
+    if len(data)<2 or data[1] != 1:
+        print(data)
+        die('failed to remove the bootloader.')
+    else:
+        print('Device bootloader mode removed.')
 
 
 def bootloader_destroy(h):
+    print( 'Erasing bootloader code pages on MCU.')
     h.write([0,commands.U2F_CONFIG_BOOTLOADER_DESTROY])
-    h.write([0,0xff,0xff,0xff,0xff,commands.U2F_CONFIG_BOOTLOADER_DESTROY])
-    print('Device bootloader mode removed.  Please double check by running bootloader command.')
-
-
+    data = read_n_tries(h,5,64,1000)
+    if len(data)<2 or data[1] != 1:
+        print(data)
+        die('failed to remove the bootloader.')
+    else:
+        print('Device bootloader mode removed.')
 
 
 
@@ -587,9 +588,6 @@ if __name__ == '__main__':
     elif action == 'wink':
         h = open_u2f(SN)
         do_wink(h)
-    elif action == 'bootloader':
-        h = open_u2f(SN)
-        bootloader(h)
     elif action == 'bootloader-destroy':
         h = open_u2f(SN)
         bootloader_destroy(h)

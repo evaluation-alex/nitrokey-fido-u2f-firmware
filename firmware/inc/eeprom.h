@@ -42,6 +42,8 @@ void _eeprom_write(uint16_t addr, uint8_t * buf, uint8_t len, uint8_t flags);
 
 #define EEPROM_PAGE_START(p)		(0x200*(p))
 #define EEPROM_KB_START(p)			(EEPROM_PAGE_START(2*p))
+#define EEPROM_PAGE_COUNT			(79)
+#define EEPROM_LAST_PAGE_NUM		(EEPROM_PAGE_COUNT-1)
 // 0x8000 -> 20kB
 #define EEPROM_DATA_START 			(EEPROM_KB_START(20))
 // 2*36 bytes
