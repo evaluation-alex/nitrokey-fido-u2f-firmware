@@ -69,7 +69,9 @@
 	#undef U2F_BLINK_ERRORS
 	#undef __BUTTON_TEST__
 	#undef U2F_USING_BOOTLOADER
-	#define _SECURE_EEPROM
+	#ifndef ATECC_SETUP_DEVICE
+		#define _SECURE_EEPROM
+	#endif
 #endif
 
 
