@@ -33,6 +33,7 @@
 #include "atecc508a.h"
 #include "i2c.h"
 #include "eeprom.h"
+#include "gpio.h"
 
 #include "bsp.h"
 
@@ -888,6 +889,7 @@ void atecc_setup_device(struct config_msg * msg)
 			eeprom_erase(EEPROM_PAGE_START(EEPROM_LAST_PAGE_NUM-1));
 			eeprom_erase(EEPROM_PAGE_START(EEPROM_LAST_PAGE_NUM-2));
 			usbres.buf[0] = 1;
+			led_blink(1, 100);
 			break;
 		default:
 			u2f_printb("invalid command: ",1,msg->cmd);
