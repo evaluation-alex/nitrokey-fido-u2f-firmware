@@ -884,9 +884,9 @@ void atecc_setup_device(struct config_msg * msg)
 
 			break;
 		case U2F_CONFIG_BOOTLOADER_DESTROY:
-			eeprom_erase(EEPROM_PAGE_START(79-1));
-			eeprom_erase(EEPROM_PAGE_START(79-2));
-			eeprom_erase(EEPROM_PAGE_START(79-3));
+			eeprom_erase(EEPROM_PAGE_START(EEPROM_LAST_PAGE_NUM-0));
+			eeprom_erase(EEPROM_PAGE_START(EEPROM_LAST_PAGE_NUM-1));
+			eeprom_erase(EEPROM_PAGE_START(EEPROM_LAST_PAGE_NUM-2));
 			usbres.buf[0] = 1;
 			break;
 		default:
