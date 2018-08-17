@@ -52,9 +52,6 @@
 #define U2F_SUPPORT_RNG_CUSTOM
 #define U2F_SUPPORT_SEED_CUSTOM
 
-// comment out this if using bootloader
-//#define U2F_USING_BOOTLOADER
-
 // Uncomment this to make configuration firmware (stage 1 firmware)
 //#define ATECC_SETUP_DEVICE
 
