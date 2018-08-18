@@ -100,6 +100,14 @@ int8_t u2f_get_user_feedback()
 	u2f_delay(20);
 	BUTTON_RESET_OFF();
 
+	t = get_ms();
+	while (IS_BUTTON_PRESSED()) {                     // Wait to release button
+		if (get_ms() - t > U2F_MS_USER_INPUT_WAIT) {  // 3 secs timeout
+			break;
+		}
+		watchdog();
+	}
+
 	return 0;
 }
 
