@@ -72,7 +72,9 @@ int8_t u2f_get_user_feedback()
 	BUTTON_RESET_ON();                                // Clear ghost touches
 	u2f_delay(6);
 	BUTTON_RESET_OFF();
+
 	t = get_ms();
+
 	while (IS_BUTTON_PRESSED()) {                     // Wait to release button
 		if (get_ms() - t > U2F_MS_USER_INPUT_WAIT) {  // 3 secs timeout
 			return 1;
@@ -80,6 +82,12 @@ int8_t u2f_get_user_feedback()
 		watchdog();
 	}
 	led_blink(LED_BLINK_NUM_INF, 375);
+
+	watchdog();
+
+	t = get_ms();
+
+	/// BUG START
 	while(button_get_press() == 0)                         // Wait to push button
 	{
 		led_blink_manager();                               // Run led driver to ensure blinking
@@ -88,6 +96,7 @@ int8_t u2f_get_user_feedback()
 			break;                                    // Timeout
 		watchdog();
 	}
+	/// BUG END
 
 	if (button_get_press() == 1) {                          // Button has been pushed in time
 		led_off();
