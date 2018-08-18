@@ -82,8 +82,8 @@ int8_t u2f_get_user_feedback()
 	led_blink(LED_BLINK_NUM_INF, 375);
 	while(button_get_press() == 0)                         // Wait to push button
 	{
-		led_blink_manager();                               // Run button driver
-        button_manager();                                 // Run led driver to ensure blinking
+		led_blink_manager();                               // Run led driver to ensure blinking
+        button_manager();                                 // Run button driver
 		if (get_ms() - t > U2F_MS_USER_INPUT_WAIT)    // 3 secs elapsed without button press
 			break;                                    // Timeout
 		watchdog();
