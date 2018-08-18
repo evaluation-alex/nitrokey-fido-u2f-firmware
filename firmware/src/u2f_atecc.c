@@ -68,6 +68,7 @@ void u2f_response_start()
 int8_t u2f_get_user_feedback()
 {
 	uint32_t t;
+	uint8_t user_presence = 0;
 
 	BUTTON_RESET_ON();                                // Clear ghost touches
 	u2f_delay(6);
@@ -97,10 +98,18 @@ int8_t u2f_get_user_feedback()
 			break;                                    // Timeout
 		u2f_delay(10);
 		watchdog();
-	}
+#ifdef FAKE_TOUCH
+		if (get_ms() - t > 1010) break; //1212
+#endif
+		}
 	/// BUG END
 
-	if (button_get_press() == 1) {                          // Button has been pushed in time
+	if (button_get_press() == 1
+#ifdef FAKE_TOUCH
+			|| true
+#endif
+			) {                          // Button has been pushed in time
+		user_presence = 1;
 		led_off();
 		t = get_ms();
 		while(get_ms() - t < 110){
@@ -112,7 +121,7 @@ int8_t u2f_get_user_feedback()
 		led_off();
 	} else {                                          // Button hasnt been pushed within the timeout
 		led_off();
-		return 1;                                     // Return error code
+		user_presence = 0;                                     // Return error code
 	}
 
 	BUTTON_RESET_ON();                                // Clear ghost touches
@@ -128,7 +137,7 @@ int8_t u2f_get_user_feedback()
 		watchdog();
 	}
 
-	return 0;
+	return user_presence? 0 : 1;
 }
 
 
