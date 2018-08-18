@@ -92,9 +92,13 @@ int8_t u2f_get_user_feedback()
 	if (button_get_press() == 1) {                          // Button has been pushed in time
 		led_off();
 	} else {                                          // Button hasnt been pushed within the timeout
-		led_blink(LED_BLINK_NUM_INF, 375);
+		led_off();
 		return 1;                                     // Return error code
 	}
+
+	BUTTON_RESET_ON();                                // Clear ghost touches
+	u2f_delay(20);
+	BUTTON_RESET_OFF();
 
 	return 0;
 }
