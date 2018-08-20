@@ -169,6 +169,9 @@ int16_t main(void) {
 			}break;
 		}
 
+		watchdog();
+		atecc_idle();
+
 		if (error)
 		{
 			u2f_printx("error: ", 1, (uint16_t)error);
