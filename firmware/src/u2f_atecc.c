@@ -158,7 +158,7 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 		appdata.tmp,
 		sizeof(appdata.tmp), &res) != 0 )
 	{
-		return -1;
+		return -1; //U2F_SW_CUSTOM_RNG_GENERATION
 	}
 
 	SHA_HMAC_KEY = U2F_DEVICE_KEY_SLOT;
@@ -183,7 +183,7 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 
 	if ( atecc_privwrite(U2F_TEMP_KEY_SLOT, private_key, EEPROM_DATA_WMASK, handle+4) != 0)
 	{
-		return -1;
+		return -2; // U2F_SW_CUSTOM_PRIVWRITE
 	}
 
 	memset(private_key,0,36);
@@ -192,7 +192,7 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 			ATECC_GENKEY_PUBLIC, U2F_TEMP_KEY_SLOT, NULL, 0,
 			appdata.tmp, 70, &res) != 0)
 	{
-		return -1;
+		return -3; // U2F_SW_CUSTOM_GENKEY
 	}
 
 	memmove(pubkey, res.buf, 64);

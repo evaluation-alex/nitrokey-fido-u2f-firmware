@@ -71,6 +71,11 @@
 #define U2F_SW_WRONG_PAYLOAD	            0x6a80
 #define U2F_SW_INSUFFICIENT_MEMORY          0x9210
 
+// Custom errors
+#define U2F_SW_CUSTOM_RNG_GENERATION        0x920f
+#define U2F_SW_CUSTOM_PRIVWRITE        		0x921e
+#define U2F_SW_CUSTOM_GENKEY          		0x921d
+
 // Delay in milliseconds to wait for user input
 #define U2F_MS_USER_INPUT_WAIT				3000
 
