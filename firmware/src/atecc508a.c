@@ -154,13 +154,13 @@ static void delay_cmd(uint8_t cmd)
 			d = 50;
 			break;
 		case ATECC_CMD_GENKEY:
-			d = 100;
+			d = 115;
 			break;
 		default:
-			d = 32;
+			d = 58;
 			break;
 	}
-	u2f_delay(d);
+	u2f_delay(d+1);
 }
 
 int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
@@ -169,6 +169,9 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 {
 	uint8_t errors = 0;
 	atecc_wake();
+	u2f_delay(10);
+	atecc_wake();
+
 	resend:
 	while(atecc_send(cmd, p1, p2, tx, txlen) == -1)
 	{
@@ -182,7 +185,7 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 	while(atecc_recv(rx,rxlen, res) == -1)
 	{
 		errors++;
-		if (errors > 5)
+		if (errors > 8)
 		{
 			return -2;
 		}
@@ -192,7 +195,7 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 				delay_cmd(cmd);
 				break;
 			default:
-				u2f_delay(cmd);
+				u2f_delay(10);
 				goto resend;
 				break;
 		}

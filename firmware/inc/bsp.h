@@ -47,7 +47,11 @@ SI_SBIT(U2F_BUTTON_RESET, SFR_P0, 7);
 #define BUTTON_RESET_OFF()       { U2F_BUTTON_RESET = 1; }
 #define IS_LED_ON()              (U2F_LED == 0)
 #define GetEp(epAddr)            (&myUsbDevice.ep0 + epAddr)
+#ifndef DISABLE_WATCHDOG
 #define watchdog()	             (WDTCN = 0xA5)
+#else
+#define watchdog()
+#endif
 #define reboot()	             (RSTSRC = 1 << 4)
 #define get_ms()                  _MS_
 

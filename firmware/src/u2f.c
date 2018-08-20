@@ -210,7 +210,7 @@ static int16_t u2f_register(struct u2f_register_request * req)
 
     uint8_t key_handle[U2F_KEY_HANDLE_SIZE];
     uint8_t pubkey[64];
-
+    int8_t status_code = 0;
 
     const uint16_t attest_size = u2f_attestation_cert_size();
 
@@ -220,10 +220,11 @@ static int16_t u2f_register(struct u2f_register_request * req)
         return U2F_SW_CONDITIONS_NOT_SATISFIED;
     }
 
-    if ( u2f_new_keypair(key_handle, req->app, pubkey) == -1)
+    status_code = u2f_new_keypair(key_handle, req->app, pubkey);
+	if (status_code != 0)
     {
     	u2f_hid_set_len(2);
-    	return U2F_SW_INSUFFICIENT_MEMORY;
+    	return U2F_SW_INSUFFICIENT_MEMORY+status_code;
     }
 
     u2f_sha256_start();
