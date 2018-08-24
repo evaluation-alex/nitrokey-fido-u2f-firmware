@@ -102,6 +102,14 @@ int8_t u2f_get_user_feedback()
 
 	if (button_get_press() == 1) {                          // Button has been pushed in time
 		led_off();
+		t = get_ms();
+		while(get_ms() - t < 110){
+			led_on();
+			u2f_delay(12);
+			led_off();
+			u2f_delay(25);
+		}
+		led_off();
 	} else {                                          // Button hasnt been pushed within the timeout
 		led_off();
 		return 1;                                     // Return error code
