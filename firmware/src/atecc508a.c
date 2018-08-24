@@ -150,15 +150,32 @@ static void delay_cmd(uint8_t cmd)
 	uint8_t d = 0;
 	switch(cmd)
 	{
-		case ATECC_CMD_SIGN:
-			d = 50;
-			break;
-		case ATECC_CMD_GENKEY:
-			d = 115;
-			break;
-		default:
-			d = 58;
-			break;
+	case ATECC_CMD_COUNTER:
+		d = 20; break;
+	case ATECC_CMD_GENDIG:
+		d = 11; break;
+	case ATECC_CMD_INFO:
+		d = 1; break;
+	case ATECC_CMD_LOCK:
+		d = 32; break;
+	case ATECC_CMD_NONCE:
+		d = 7; break;
+	case ATECC_CMD_PRIVWRITE:
+		d = 48; break;
+	case ATECC_CMD_READ:
+		d = 1; break;
+	case ATECC_CMD_RNG:
+		d = 23; break;
+	case ATECC_CMD_SHA:
+		d = 9; break;
+	case ATECC_CMD_WRITE:
+		d = 26; break;
+	case ATECC_CMD_SIGN:
+		d = 50; break;
+	case ATECC_CMD_GENKEY:
+		d = 115; break;
+	default:
+		d = 58; break;
 	}
 	u2f_delay(d+1);
 }
