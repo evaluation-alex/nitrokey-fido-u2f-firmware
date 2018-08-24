@@ -188,7 +188,7 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 	uint16_t errarr[20]; //store error codes for debugging
 	memset(errarr, 0, sizeof(errarr));
 	atecc_wake();
-//	u2f_delay(10);
+	u2f_delay(5);
 
 	resend:
 	while(atecc_send(cmd, p1, p2, tx, txlen) == -1)
@@ -215,14 +215,13 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 				break;
 			case ERROR_ATECC_WATCHDOG:
 				atecc_idle();
-				u2f_delay(10);
+				u2f_delay(5);
 				atecc_wake();
-				errors--;
+				u2f_delay(5);
 				goto resend;
 				break;
 			case ERROR_ATECC_WAKE:
-				u2f_delay(10);
-				errors--;
+				u2f_delay(1);
 				goto resend;
 				break;
 			default:
