@@ -177,7 +177,7 @@ static void delay_cmd(uint8_t cmd)
 	default:
 		d = 58; break;
 	}
-	u2f_delay(d+1);
+	u2f_delay(d/4+1);
 }
 
 int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
