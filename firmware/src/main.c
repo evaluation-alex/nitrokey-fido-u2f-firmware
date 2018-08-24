@@ -178,7 +178,10 @@ int16_t main(void) {
 		}
 
 		watchdog();
-		atecc_sleep();
+		if(atecc_used){
+			atecc_sleep();
+			atecc_used = 0;
+		}
 
 		if (error)
 		{
