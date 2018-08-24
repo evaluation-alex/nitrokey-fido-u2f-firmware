@@ -40,6 +40,12 @@ SI_SBIT(U2F_BUTTON,       SFR_P0, 1);
 SI_SBIT(U2F_LED,          SFR_P0, 6);
 SI_SBIT(U2F_BUTTON_RESET, SFR_P0, 7);
 
+/*
+ * U2F_BUTTON_RESET is a MTPM pin. Requires HIGH state to keep
+ * NORMAL power mode on MTCH101
+ * */
+
+
 #define IS_BUTTON_PRESSED()      (U2F_BUTTON == 0)
 #define LED_ON()                 { U2F_LED = 0; }
 #define LED_OFF()                { U2F_LED = 1; }
