@@ -191,6 +191,7 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 	u2f_delay(5);
 
 	resend:
+	set_app_error(ERROR_NOTHING);
 	while(atecc_send(cmd, p1, p2, tx, txlen) == -1)
 	{
 		errarr[errors] = 0x1000+get_app_error();
