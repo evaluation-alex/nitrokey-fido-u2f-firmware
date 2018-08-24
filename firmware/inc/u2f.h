@@ -145,6 +145,9 @@ extern void u2f_response_start();
 // before failing.
 extern int8_t u2f_get_user_feedback();
 
+
+void clear_button_press();
+
 // u2f_sha256_start callback for u2f to start a sha256 hash
 extern void u2f_sha256_start();
 

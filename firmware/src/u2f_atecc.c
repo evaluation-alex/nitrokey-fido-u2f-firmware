@@ -65,33 +65,28 @@ void u2f_response_start()
 	watchdog();
 }
 
+void clear_button_press(){
+	led_on();
+	BUTTON_RESET_ON();
+	while (IS_BUTTON_PRESSED()) {                     // Wait to release button
+		watchdog();
+		u2f_delay(6); //6ms activation time + 105ms maximum sleep in NORMAL power mode
+	}
+	BUTTON_RESET_OFF();
+	led_off();
+}
+
 int8_t u2f_get_user_feedback()
 {
 	uint32_t t;
 	uint8_t user_presence = 0;
 
-	BUTTON_RESET_ON();                                // Clear ghost touches
-	u2f_delay(6);
-	BUTTON_RESET_OFF();
+	clear_button_press();
 
-	t = get_ms();
-
-	led_on();
-	while (IS_BUTTON_PRESSED()) {                     // Wait to release button
-		if (get_ms() - t > U2F_MS_USER_INPUT_WAIT) {  // 3 secs timeout
-			return 1;
-		}
-		u2f_delay(10);
-		watchdog();
-	}
-	led_off();
 	led_blink(LED_BLINK_NUM_INF, 375);
-
 	watchdog();
 
 	t = get_ms();
-
-	/// BUG START
 	while(button_get_press() == 0)                         // Wait to push button
 	{
 		led_blink_manager();                               // Run led driver to ensure blinking
@@ -104,7 +99,6 @@ int8_t u2f_get_user_feedback()
 		if (get_ms() - t > 1010) break; //1212
 #endif
 		}
-	/// BUG END
 
 	if (button_get_press() == 1
 #ifdef FAKE_TOUCH
@@ -126,19 +120,7 @@ int8_t u2f_get_user_feedback()
 		user_presence = 0;                                     // Return error code
 	}
 
-	BUTTON_RESET_ON();                                // Clear ghost touches
-	u2f_delay(20);
-	BUTTON_RESET_OFF();
-
-	u2f_delay(10);
-	t = get_ms();
-	while (IS_BUTTON_PRESSED()) {                     // Wait to release button
-		if (get_ms() - t > U2F_MS_USER_INPUT_WAIT) {  // 3 secs timeout
-			break;
-		}
-		u2f_delay(10);
-		watchdog();
-	}
+	clear_button_press();
 
 	return user_presence? 0 : 1;
 }
