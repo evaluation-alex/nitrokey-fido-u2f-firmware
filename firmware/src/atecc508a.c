@@ -169,8 +169,7 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 {
 	uint8_t errors = 0;
 	atecc_wake();
-	u2f_delay(10);
-	atecc_wake();
+//	u2f_delay(10);
 
 	resend:
 	while(atecc_send(cmd, p1, p2, tx, txlen) == -1)
@@ -193,6 +192,18 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 		{
 			case ERROR_NOTHING:
 				delay_cmd(cmd);
+				break;
+			case ERROR_ATECC_WATCHDOG:
+				atecc_idle();
+				u2f_delay(10);
+				atecc_wake();
+				errors--;
+				goto resend;
+				break;
+			case ERROR_ATECC_WAKE:
+				u2f_delay(10);
+				errors--;
+				goto resend;
 				break;
 			default:
 				u2f_delay(10);
