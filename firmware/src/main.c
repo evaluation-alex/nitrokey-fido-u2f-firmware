@@ -107,6 +107,8 @@ int16_t main(void) {
 	watchdog();
 	init(&appdata);
 
+	atecc_sleep();
+
 #ifdef DISABLE_WATCHDOG
 	IE_EA = 0;
 	WDTCN = 0xDE;
