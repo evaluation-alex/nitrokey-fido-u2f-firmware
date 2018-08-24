@@ -65,6 +65,8 @@ int8_t write_masks(){
 }
 #endif
 
+uint8_t atecc_used = 0;
+
 int8_t atecc_send(uint8_t cmd, uint8_t p1, uint16_t p2,
 					uint8_t * buf, uint8_t len)
 {
@@ -187,6 +189,7 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 	uint8_t errors = 0;
 	uint16_t errarr[20]; //store error codes for debugging
 	memset(errarr, 0, sizeof(errarr));
+	atecc_used = 1;
 	atecc_wake();
 	u2f_delay(5);
 
