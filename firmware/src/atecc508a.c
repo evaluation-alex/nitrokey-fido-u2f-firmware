@@ -185,13 +185,15 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 							uint8_t rxlen, struct atecc_response* res)
 {
 	uint8_t errors = 0;
+	uint16_t errarr[20]; //store error codes for debugging
+	memset(errarr, 0, sizeof(errarr));
 	atecc_wake();
 //	u2f_delay(10);
 
 	resend:
 	while(atecc_send(cmd, p1, p2, tx, txlen) == -1)
 	{
-		u2f_delay(10);
+		errarr[errors] = 0x1000+get_app_error();
 		errors++;
 		if (errors > 8)
 		{
@@ -200,8 +202,9 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 	}
 	while(atecc_recv(rx,rxlen, res) == -1)
 	{
+		errarr[errors] = 0x2000+get_app_error();
 		errors++;
-		if (errors > 8)
+		if (errors > 16)
 		{
 			return -2;
 		}
