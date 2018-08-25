@@ -298,7 +298,7 @@ def do_passt(h):
     print(repr(res))
 
 
-def do_configure(h,pemkey,output, reuse=False):
+def do_configure(h,pemkey):
 
     if not os.path.exists(pemkey):
         die('Pemkey path does not exist: '+pemkey)
@@ -562,12 +562,11 @@ if __name__ == '__main__':
         SN = sys.argv[sys.argv.index('-s') + 1]
 
     if action == 'configure':
-        reuse_keys = '--no-reuse-keys' not in sys.argv
-        if len(sys.argv) not in [4,6] and not reuse_keys:
-            print( 'error: need ecc private key and an output file')
+        if len(sys.argv) < 3:
+            print('error: need ecc private key')
             sys.exit(1)
         h = open_u2f(SN)
-        do_configure(h, sys.argv[2],sys.argv[3], reuse_keys)
+        do_configure(h, sys.argv[2])
     elif action == 'generate_device_key':
         h = open_u2f(SN)
         do_generate_device_key(h)
