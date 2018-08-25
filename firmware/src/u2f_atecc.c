@@ -68,10 +68,10 @@ void u2f_response_start()
 void clear_button_press(){
 	led_on();
 	BUTTON_RESET_ON();
-	while (IS_BUTTON_PRESSED()) {                     // Wait to release button
+	do {
 		watchdog();
-		u2f_delay(6); //6ms activation time + 105ms maximum sleep in NORMAL power mode
-	}
+		u2f_delay(6); 				//6ms activation time + 105ms maximum sleep in NORMAL power mode
+	} while (IS_BUTTON_PRESSED()); // Wait to release button
 	BUTTON_RESET_OFF();
 	led_off();
 }
