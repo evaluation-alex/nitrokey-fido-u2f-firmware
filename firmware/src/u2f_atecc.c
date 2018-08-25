@@ -107,6 +107,7 @@ int8_t u2f_get_user_feedback()
 			) {                          // Button has been pushed in time
 		user_presence = 1;
 		led_off();
+#ifdef SHOW_TOUCH_REGISTERED
 		t = get_ms();
 		while(get_ms() - t < 110){
 			led_on();
@@ -115,6 +116,7 @@ int8_t u2f_get_user_feedback()
 			u2f_delay(25);
 		}
 		led_off();
+#endif
 	} else {                                          // Button hasnt been pushed within the timeout
 		led_off();
 		user_presence = 0;                                     // Return error code
