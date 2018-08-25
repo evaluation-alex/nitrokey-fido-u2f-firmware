@@ -183,15 +183,14 @@ class commands:
 if len(sys.argv) not in [2,3,4,5,6]:
     print('usage: %s <action> [<arguments>] [-s serial-number]' % sys.argv[0])
     print('actions: ')
-    print("""   configure <ecc-private-key> <output-file> [--reuse-keys]: setup the device configuration.
+    print("""   configure <ecc-private-key>: setup the device configuration.
     Specify ECC P-256 private key for token attestation.  Specify temporary output file for generated
     keys. Reuses r/w keys if --reuse-keys is specified.""")
     print('     rng: Continuously dump random numbers from the devices hardware RNG.')
     print('     seed: update the hardware RNG seed with input from stdin')
-    print('     wipe: wipe all registered keys on U2F Zero.  Must also press button 5 times.  Not reversible.')
     print('     list: list all connected U2F Zero tokens.')
     print('     wink: blink the LED')
-    print('     bootloader: put device in bootloader mode')
+    print('     ping <bytes count>: test ping capabilities of the device')
     print('     bootloader-destroy: permanently disable the bootloader')
     sys.exit(1)
 
@@ -199,6 +198,8 @@ def open_u2f(SN=None):
     h = hid.device()
     try:
         h.open(0x20a0,0x4287,SN if SN is None else unicode(SN))
+        if SN is None:
+            SN = h.get_serial_number_string()
         print('opened ', SN)
     except IOError as ex:
         print( ex)
@@ -591,6 +592,9 @@ if __name__ == '__main__':
         h = open_u2f(SN)
         bootloader_destroy(h)
     elif action == 'ping':
+        if len(sys.argv) < 3:
+            print('error: need bytes count to send')
+            sys.exit(1)
         h = open_u2f(SN)
         do_ping(h, sys.argv[2])
     else:
