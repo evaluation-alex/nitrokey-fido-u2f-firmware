@@ -236,9 +236,9 @@ static void gen_u2f_zero_tag(uint8_t * dst, uint8_t * appid, uint8_t * handle)
 
 	u2f_sha256_update(handle,U2F_KEY_HANDLE_KEY_SIZE);
 
-	eeprom_read(EEPROM_DATA_U2F_CONST, appdata.tmp, 16);
-	u2f_sha256_update(appdata.tmp,16);
-	memset(appdata.tmp, 0, 16);
+	eeprom_read(EEPROM_DATA_U2F_CONST, appdata.tmp, U2F_CONST_LENGTH);
+	u2f_sha256_update(appdata.tmp,U2F_CONST_LENGTH);
+	memset(appdata.tmp, 0, U2F_CONST_LENGTH);
 
 	u2f_sha256_update(appid,32);
 
