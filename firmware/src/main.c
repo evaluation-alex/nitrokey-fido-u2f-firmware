@@ -101,15 +101,23 @@ int16_t main(void) {
 
 	enter_DefaultMode_from_RESET();
 
-	// ~200 ms interval watchdog
-	WDTCN = 4;
+	// ~800 ms interval watchdog
+	WDTCN = 5;
 
 	watchdog();
 	init(&appdata);
 
+	atecc_sleep();
+
+#ifdef DISABLE_WATCHDOG
+	IE_EA = 0;
+	WDTCN = 0xDE;
+	WDTCN = 0xAD;
+#endif
 	// Enable interrupts
 	IE_EA = 1;
 	watchdog();
+
 
 	if (RSTSRC & RSTSRC_WDTRSF__SET)
 	{
@@ -169,6 +177,12 @@ int16_t main(void) {
 			}break;
 		}
 
+		watchdog();
+		if(atecc_used){
+			atecc_sleep();
+			atecc_used = 0;
+		}
+
 		if (error)
 		{
 			u2f_printx("error: ", 1, (uint16_t)error);
@@ -191,11 +205,14 @@ int16_t main(void) {
 #else
 #ifndef ON_ERROR_RESET_IMMEDIATELY
 			//LedBlink(LED_BLINK_NUM_INF, 375);       // Blink wont work because of the following
-			for (i=0; i<0x400;i++)                    // wipe ram
-			{
-				*(clear++) = 0x0;
-				watchdog();
-			}
+//			for (i=0; i<0x400;i++)                    // wipe ram
+//			{
+//				*(clear++) = 0x0;
+//			}
+			u2f_hid_set_len(2);
+			i = 0x1300 + error;
+			u2f_response_writeback(&i,2);
+			watchdog();
 #endif
 #endif
 

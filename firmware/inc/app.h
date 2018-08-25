@@ -52,6 +52,10 @@
 #define U2F_SUPPORT_RNG_CUSTOM
 #define U2F_SUPPORT_SEED_CUSTOM
 
+#define SHOW_TOUCH_REGISTERED
+
+//#define DISABLE_WATCHDOG
+
 // Uncomment this to make configuration firmware (stage 1 firmware)
 //#define ATECC_SETUP_DEVICE
 
@@ -65,6 +69,8 @@
 //#define U2F_BLINK_ERRORS
 
 #ifdef _PRODUCTION_RELEASE
+	#undef SHOW_TOUCH_REGISTERED
+	#undef DISABLE_WATCHDOG
 	#undef U2F_PRINT
 	#undef U2F_BLINK_ERRORS
 	#undef __BUTTON_TEST__

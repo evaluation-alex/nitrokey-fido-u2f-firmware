@@ -170,6 +170,7 @@ extern int atecc_privwrite(uint16_t keyslot, uint8_t * key, uint16_t mask, uint8
 void atecc_idle();
 void atecc_wake();
 void atecc_sleep();
+extern uint8_t atecc_used;
 
 int8_t atecc_send(uint8_t cmd, uint8_t p1, uint16_t p2,
 					uint8_t * buf, uint8_t len);

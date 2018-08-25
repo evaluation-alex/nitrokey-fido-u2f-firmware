@@ -65,38 +65,66 @@ void u2f_response_start()
 	watchdog();
 }
 
+void clear_button_press(){
+	led_on();
+	BUTTON_RESET_ON();
+	do {
+		watchdog();
+		u2f_delay(6); 				//6ms activation time + 105ms maximum sleep in NORMAL power mode
+	} while (IS_BUTTON_PRESSED()); // Wait to release button
+	BUTTON_RESET_OFF();
+	led_off();
+}
+
 int8_t u2f_get_user_feedback()
 {
 	uint32_t t;
+	uint8_t user_presence = 0;
 
-	BUTTON_RESET_ON();                                // Clear ghost touches
-	u2f_delay(6);
-	BUTTON_RESET_OFF();
-	t = get_ms();
-	while (IS_BUTTON_PRESSED()) {                     // Wait to release button
-		if (get_ms() - t > U2F_MS_USER_INPUT_WAIT) {  // 3 secs timeout
-			return 1;
-		}
-		watchdog();
-	}
+	clear_button_press();
+
 	led_blink(LED_BLINK_NUM_INF, 375);
+	watchdog();
+
+	t = get_ms();
 	while(button_get_press() == 0)                         // Wait to push button
 	{
-		led_blink_manager();                               // Run button driver
-        button_manager();                                 // Run led driver to ensure blinking
+		led_blink_manager();                               // Run led driver to ensure blinking
+        button_manager();                                 // Run button driver
 		if (get_ms() - t > U2F_MS_USER_INPUT_WAIT)    // 3 secs elapsed without button press
 			break;                                    // Timeout
+		u2f_delay(10);
 		watchdog();
-	}
+#ifdef FAKE_TOUCH
+		if (get_ms() - t > 1010) break; //1212
+#endif
+		}
 
-	if (button_get_press() == 1) {                          // Button has been pushed in time
+	if (button_get_press() == 1
+#ifdef FAKE_TOUCH
+			|| true
+#endif
+			) {                          // Button has been pushed in time
+		user_presence = 1;
 		led_off();
+#ifdef SHOW_TOUCH_REGISTERED
+		t = get_ms();
+		while(get_ms() - t < 110){
+			led_on();
+			u2f_delay(12);
+			led_off();
+			u2f_delay(25);
+		}
+		led_off();
+#endif
 	} else {                                          // Button hasnt been pushed within the timeout
-		led_blink(LED_BLINK_NUM_INF, 375);
-		return 1;                                     // Return error code
+		led_off();
+		user_presence = 0;                                     // Return error code
 	}
 
-	return 0;
+	clear_button_press();
+
+	return user_presence? 0 : 1;
 }
 
 
@@ -134,7 +162,7 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 		appdata.tmp,
 		sizeof(appdata.tmp), &res) != 0 )
 	{
-		return -1;
+		return -1; //U2F_SW_CUSTOM_RNG_GENERATION
 	}
 
 	SHA_HMAC_KEY = U2F_DEVICE_KEY_SLOT;
@@ -154,12 +182,12 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 
 	watchdog();
 	compute_key_hash(private_key, EEPROM_DATA_WMASK, U2F_TEMP_KEY_SLOT);
-	memmove(handle+4, res_digest.buf, 32);  // size of key handle must be 36+8
+	memmove(handle+4, res_digest.buf, 32);  // size of key handle must be 36+28
 
 
 	if ( atecc_privwrite(U2F_TEMP_KEY_SLOT, private_key, EEPROM_DATA_WMASK, handle+4) != 0)
 	{
-		return -1;
+		return -2; // U2F_SW_CUSTOM_PRIVWRITE
 	}
 
 	memset(private_key,0,36);
@@ -168,12 +196,12 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 			ATECC_GENKEY_PUBLIC, U2F_TEMP_KEY_SLOT, NULL, 0,
 			appdata.tmp, 70, &res) != 0)
 	{
-		return -1;
+		return -3; // U2F_SW_CUSTOM_GENKEY
 	}
 
 	memmove(pubkey, res.buf, 64);
 
-	// the + 8
+	// the + 28/U2F_KEY_HANDLE_ID_SIZE
 	gen_u2f_zero_tag(handle + U2F_KEY_HANDLE_KEY_SIZE, appid, handle);
 
 	return 0;
@@ -208,9 +236,9 @@ static void gen_u2f_zero_tag(uint8_t * dst, uint8_t * appid, uint8_t * handle)
 
 	u2f_sha256_update(handle,U2F_KEY_HANDLE_KEY_SIZE);
 
-	eeprom_read(EEPROM_DATA_U2F_CONST, appdata.tmp, 16);
-	u2f_sha256_update(appdata.tmp,16);
-	memset(appdata.tmp, 0, 16);
+	eeprom_read(EEPROM_DATA_U2F_CONST, appdata.tmp, U2F_CONST_LENGTH);
+	u2f_sha256_update(appdata.tmp,U2F_CONST_LENGTH);
+	memset(appdata.tmp, 0, U2F_CONST_LENGTH);
 
 	u2f_sha256_update(appid,32);
 

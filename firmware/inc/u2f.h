@@ -38,7 +38,9 @@
 #define U2F_APDU_SIZE                       7
 #define U2F_CHALLENGE_SIZE                  32
 #define U2F_APPLICATION_SIZE                32
-#define U2F_KEY_HANDLE_ID_SIZE              8
+// U2F_KEY_HANDLE_ID_SIZE up to 32 bytes, if bigger is required then
+// gen_u2f_zero_tag needs to be modified
+#define U2F_KEY_HANDLE_ID_SIZE              28
 #define U2F_KEY_HANDLE_KEY_SIZE             36
 #define U2F_KEY_HANDLE_SIZE                 (U2F_KEY_HANDLE_KEY_SIZE+U2F_KEY_HANDLE_ID_SIZE)
 #define U2F_REGISTER_REQUEST_SIZE           (U2F_CHALLENGE_SIZE+U2F_APPLICATION_SIZE)
@@ -70,6 +72,11 @@
 #define U2F_SW_CLASS_NOT_SUPPORTED          0x6E00
 #define U2F_SW_WRONG_PAYLOAD	            0x6a80
 #define U2F_SW_INSUFFICIENT_MEMORY          0x9210
+
+// Custom errors
+#define U2F_SW_CUSTOM_RNG_GENERATION        0x920f
+#define U2F_SW_CUSTOM_PRIVWRITE        		0x921e
+#define U2F_SW_CUSTOM_GENKEY          		0x921d
 
 // Delay in milliseconds to wait for user input
 #define U2F_MS_USER_INPUT_WAIT				3000
@@ -139,6 +146,9 @@ extern void u2f_response_start();
 // This should block as long as it needs to get feedback
 // before failing.
 extern int8_t u2f_get_user_feedback();
+
+
+void clear_button_press();
 
 // u2f_sha256_start callback for u2f to start a sha256 hash
 extern void u2f_sha256_start();

@@ -35,6 +35,11 @@ void u2f_delay(uint32_t ms) {
 	uint32_t ms_now = get_ms();
 	while((get_ms() - ms_now) < ms)
 	{
+		// make sure at least 1ms pass between watchdog calls
+		// see Errata, https://www.silabs.com/documents/public/errata/EFM8UB1-Errata.pdf
+		// 2.2 WDT_E101 – Restrictions on Watchdog Timer Refresh Interval
+		while((get_ms() - ms_now) < 1)
+			;
 		watchdog();
 	}
 }

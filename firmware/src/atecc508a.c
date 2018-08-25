@@ -65,6 +65,8 @@ int8_t write_masks(){
 }
 #endif
 
+uint8_t atecc_used = 0;
+
 int8_t atecc_send(uint8_t cmd, uint8_t p1, uint16_t p2,
 					uint8_t * buf, uint8_t len)
 {
@@ -150,17 +152,34 @@ static void delay_cmd(uint8_t cmd)
 	uint8_t d = 0;
 	switch(cmd)
 	{
-		case ATECC_CMD_SIGN:
-			d = 50;
-			break;
-		case ATECC_CMD_GENKEY:
-			d = 100;
-			break;
-		default:
-			d = 32;
-			break;
+	case ATECC_CMD_COUNTER:
+		d = 20; break;
+	case ATECC_CMD_GENDIG:
+		d = 11; break;
+	case ATECC_CMD_INFO:
+		d = 1; break;
+	case ATECC_CMD_LOCK:
+		d = 32; break;
+	case ATECC_CMD_NONCE:
+		d = 7; break;
+	case ATECC_CMD_PRIVWRITE:
+		d = 48; break;
+	case ATECC_CMD_READ:
+		d = 1; break;
+	case ATECC_CMD_RNG:
+		d = 23; break;
+	case ATECC_CMD_SHA:
+		d = 9; break;
+	case ATECC_CMD_WRITE:
+		d = 26; break;
+	case ATECC_CMD_SIGN:
+		d = 50; break;
+	case ATECC_CMD_GENKEY:
+		d = 115; break;
+	default:
+		d = 58; break;
 	}
-	u2f_delay(d);
+	u2f_delay(d/4+1);
 }
 
 int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
@@ -168,11 +187,17 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 							uint8_t rxlen, struct atecc_response* res)
 {
 	uint8_t errors = 0;
+	uint16_t errarr[20]; //store error codes for debugging
+	memset(errarr, 0, sizeof(errarr));
+	atecc_used = 1;
 	atecc_wake();
+	u2f_delay(5);
+
 	resend:
+	set_app_error(ERROR_NOTHING);
 	while(atecc_send(cmd, p1, p2, tx, txlen) == -1)
 	{
-		u2f_delay(10);
+		errarr[errors] = 0x1000+get_app_error();
 		errors++;
 		if (errors > 8)
 		{
@@ -181,8 +206,9 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 	}
 	while(atecc_recv(rx,rxlen, res) == -1)
 	{
+		errarr[errors] = 0x2000+get_app_error();
 		errors++;
-		if (errors > 5)
+		if (errors > 16)
 		{
 			return -2;
 		}
@@ -191,8 +217,19 @@ int8_t atecc_send_recv(uint8_t cmd, uint8_t p1, uint16_t p2,
 			case ERROR_NOTHING:
 				delay_cmd(cmd);
 				break;
+			case ERROR_ATECC_WATCHDOG:
+				atecc_idle();
+				u2f_delay(5);
+				atecc_wake();
+				u2f_delay(5);
+				goto resend;
+				break;
+			case ERROR_ATECC_WAKE:
+				u2f_delay(1);
+				goto resend;
+				break;
 			default:
-				u2f_delay(cmd);
+				u2f_delay(10);
 				goto resend;
 				break;
 		}
@@ -727,9 +764,9 @@ void generate_device_key(uint8_t *output, uint8_t *buf, uint8_t buflen){
 	// generate u2f_zero_const
 	generate_random_data(buf);
 	eeprom_erase(EEPROM_DATA_U2F_CONST);
-	eeprom_write(EEPROM_DATA_U2F_CONST, buf, 16);
+	eeprom_write(EEPROM_DATA_U2F_CONST, buf, U2F_CONST_LENGTH);
 #ifndef _PRODUCTION_RELEASE
-	u2f_prints("u2f_zero_const: "); dump_hex(buf,16);
+	u2f_prints("u2f_zero_const: "); dump_hex(buf,U2F_CONST_LENGTH);
 	memmove(output+1+32, buf, 16);
 #endif
 }
