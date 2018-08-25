@@ -54,5 +54,6 @@ void _eeprom_write(uint16_t addr, uint8_t * buf, uint8_t len, uint8_t flags);
 #define EEPROM_DATA_WMASK 			(EEPROM_DATA_RMASK + 512)
 #define EEPROM_DATA_U2F_CONST		(EEPROM_DATA_WMASK + 512)
 
+#define U2F_CONST_LENGTH			(32)
 
 #endif /* EEPROM_H_ */
