@@ -38,6 +38,8 @@
 #define U2F_APDU_SIZE                       7
 #define U2F_CHALLENGE_SIZE                  32
 #define U2F_APPLICATION_SIZE                32
+// U2F_KEY_HANDLE_ID_SIZE up to 32 bytes, if bigger is required then
+// gen_u2f_zero_tag needs to be modified
 #define U2F_KEY_HANDLE_ID_SIZE              28
 #define U2F_KEY_HANDLE_KEY_SIZE             36
 #define U2F_KEY_HANDLE_SIZE                 (U2F_KEY_HANDLE_KEY_SIZE+U2F_KEY_HANDLE_ID_SIZE)
