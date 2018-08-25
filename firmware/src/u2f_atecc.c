@@ -182,7 +182,7 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 
 	watchdog();
 	compute_key_hash(private_key, EEPROM_DATA_WMASK, U2F_TEMP_KEY_SLOT);
-	memmove(handle+4, res_digest.buf, 32);  // size of key handle must be 36+8
+	memmove(handle+4, res_digest.buf, 32);  // size of key handle must be 36+28
 
 
 	if ( atecc_privwrite(U2F_TEMP_KEY_SLOT, private_key, EEPROM_DATA_WMASK, handle+4) != 0)
@@ -201,7 +201,7 @@ int8_t u2f_new_keypair(uint8_t * handle, uint8_t * appid, uint8_t * pubkey)
 
 	memmove(pubkey, res.buf, 64);
 
-	// the + 8
+	// the + 28/U2F_KEY_HANDLE_ID_SIZE
 	gen_u2f_zero_tag(handle + U2F_KEY_HANDLE_KEY_SIZE, appid, handle);
 
 	return 0;
