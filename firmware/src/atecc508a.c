@@ -729,7 +729,7 @@ void generate_mask(uint8_t *output, uint8_t wkey){
 				trans_key, 32,
 				output, 32, NULL) != 0)
 		{
-			u2f_prints("writing master key failed\r\n");
+			u2f_prints("writing master key/wkey failed\r\n");
 			return;
 		}
 	}
