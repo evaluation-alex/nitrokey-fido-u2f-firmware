@@ -339,7 +339,7 @@ int atecc_prep_encryption()
 		return -1;
 	}
 	if( atecc_send_recv(ATECC_CMD_GENDIG,
-			ATECC_RW_DATA, U2F_MASTER_KEY_SLOT, NULL, 0,
+			ATECC_RW_DATA, U2F_WKEY_KEY_SLOT, NULL, 0,
 			appdata.tmp, 40, &res) != 0)
 	{
 		u2f_prints("GENDIG failed\r\n");
