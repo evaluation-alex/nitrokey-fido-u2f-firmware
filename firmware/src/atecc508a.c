@@ -304,26 +304,33 @@ void compute_key_hash(uint8_t * key, uint16_t mask, int slot)
 	u2f_sha256_finish();
 }
 
+#define CWH_ZEROES_COUNT	(25)
+#define CWH_HEADER_LEN		(7)
+#define CWH_WMASK_LEN		(32)
+#define CWH_DATA_LEN		(32)
+
 void compute_write_hash(uint8_t * key, uint16_t mask, int slot)
 {
-	eeprom_read(mask, appdata.tmp, 32);
+	// Compute hash from encrypted WRITE. See chapter 9.21 from complete data sheet.
+	// SHA-256(TempKey, Opcode, Param1, Param2, SN<8>, SN<0:1>, <25 bytes of zeros>, PlainTextData)
+	eeprom_read(mask, appdata.tmp, CWH_WMASK_LEN);
 
 	u2f_sha256_start();
-	u2f_sha256_update(appdata.tmp, 32);
+	u2f_sha256_update(appdata.tmp, CWH_WMASK_LEN);
 
-	memset(appdata.tmp,0,7+25);
-	memmove(appdata.tmp +7+25, key, 32);
+	memset(appdata.tmp,0,CWH_HEADER_LEN+CWH_ZEROES_COUNT);
+	memmove(appdata.tmp +CWH_HEADER_LEN+CWH_ZEROES_COUNT, key, CWH_DATA_LEN);
 
 //	ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT)
 	appdata.tmp[0] = ATECC_CMD_WRITE;
 	appdata.tmp[1] = ATECC_RW_DATA|ATECC_RW_EXT;
 	appdata.tmp[2] = slot;
 	appdata.tmp[3] = 0;
-	appdata.tmp[4] = 0xee;
+	appdata.tmp[4] = 0xee; //FIXME SN values for ATECC508A, might not work on other model
 	appdata.tmp[5] = 0x01;
 	appdata.tmp[6] = 0x23;
 
-	u2f_sha256_update(appdata.tmp,7+25 +32);
+	u2f_sha256_update(appdata.tmp,CWH_HEADER_LEN+CWH_ZEROES_COUNT +CWH_DATA_LEN);
 	u2f_sha256_finish();
 }
 
