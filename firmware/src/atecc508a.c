@@ -947,6 +947,26 @@ void atecc_setup_device(struct config_msg * msg)
 			generate_device_key(usbres.buf, appdata.tmp, sizeof(appdata.tmp));
 			break;
 
+#ifndef _PRODUCTION_RELEASE
+		case U2F_CONFIG_GET_SLOTS_FINGERPRINTS:
+			usbres.buf[0] = 0;
+
+			for (i=0; i<16; i++){
+				SHA_HMAC_KEY = i;
+				SHA_FLAGS = ATECC_SHA_HMACSTART;
+				u2f_sha256_start();
+				u2f_sha256_update("successful write test");
+				SHA_FLAGS = ATECC_SHA_HMACEND;
+				u2f_sha256_finish();
+				if (get_app_error() == ERROR_NOTHING)
+						memmove(usbres.buf+i*3+1, res_digest.buf, 3);
+			}
+
+			usbres.buf[0] = 1;
+			set_app_error(ERROR_NOTHING);
+			break;
+#endif
+
 		case U2F_CONFIG_LOAD_ATTEST_KEY:
 			u2f_prints("U2F_CONFIG_LOAD_ATTEST_KEY\r\n");
 
