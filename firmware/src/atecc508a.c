@@ -304,6 +304,35 @@ void compute_key_hash(uint8_t * key, uint16_t mask, int slot)
 	u2f_sha256_finish();
 }
 
+#define CWH_ZEROES_COUNT	(25)
+#define CWH_HEADER_LEN		(7)
+#define CWH_WMASK_LEN		(32)
+#define CWH_DATA_LEN		(32)
+
+void compute_write_hash(uint8_t * key, uint16_t mask, int slot)
+{
+	// Compute hash from encrypted WRITE. See chapter 9.21 from complete data sheet.
+	// SHA-256(TempKey, Opcode, Param1, Param2, SN<8>, SN<0:1>, <25 bytes of zeros>, PlainTextData)
+	eeprom_read(mask, appdata.tmp, CWH_WMASK_LEN);
+
+	u2f_sha256_start();
+	u2f_sha256_update(appdata.tmp, CWH_WMASK_LEN);
+
+	memset(appdata.tmp,0,CWH_HEADER_LEN+CWH_ZEROES_COUNT);
+	memmove(appdata.tmp +CWH_HEADER_LEN+CWH_ZEROES_COUNT, key, CWH_DATA_LEN);
+
+//	ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT)
+	appdata.tmp[0] = ATECC_CMD_WRITE;
+	appdata.tmp[1] = ATECC_RW_DATA|ATECC_RW_EXT;
+	appdata.tmp[2] = slot;
+	appdata.tmp[3] = 0;
+	appdata.tmp[4] = 0xee; //FIXME SN values for ATECC508A, might not work on other model
+	appdata.tmp[5] = 0x01;
+	appdata.tmp[6] = 0x23;
+
+	u2f_sha256_update(appdata.tmp,CWH_HEADER_LEN+CWH_ZEROES_COUNT +CWH_DATA_LEN);
+	u2f_sha256_finish();
+}
 
 int atecc_prep_encryption()
 {
@@ -317,7 +346,7 @@ int atecc_prep_encryption()
 		return -1;
 	}
 	if( atecc_send_recv(ATECC_CMD_GENDIG,
-			ATECC_RW_DATA, U2F_MASTER_KEY_SLOT, NULL, 0,
+			ATECC_RW_DATA, U2F_WKEY_KEY_SLOT, NULL, 0,
 			appdata.tmp, 40, &res) != 0)
 	{
 		u2f_prints("GENDIG failed\r\n");
@@ -700,7 +729,7 @@ void generate_mask(uint8_t *output, uint8_t wkey){
 				trans_key, 32,
 				output, 32, NULL) != 0)
 		{
-			u2f_prints("writing master key failed\r\n");
+			u2f_prints("writing master key/wkey failed\r\n");
 			return;
 		}
 	}
@@ -748,11 +777,21 @@ void generate_device_key(uint8_t *output, uint8_t *buf, uint8_t buflen){
 
 #ifndef _PRODUCTION_RELEASE
 	u2f_prints("device key: "); dump_hex(trans_key,32);
-	memmove(output+1, trans_key, 32);
+	memmove(output+1, trans_key, 16);
 #endif
 
+	compute_write_hash(trans_key,  EEPROM_DATA_WMASK, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT));
+
+	atecc_prep_encryption();
+
+	memmove(appdata.tmp, trans_key, 32);
+	memmove(appdata.tmp+32, res_digest.buf, 32);
+
+	eeprom_xor(EEPROM_DATA_WMASK, appdata.tmp, 32);
+
 	if(atecc_send_recv(ATECC_CMD_WRITE,
-		ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT), trans_key, 32,
+		ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT),
+		appdata.tmp, 32+32,
 		buf, buflen, NULL) != 0)
 	{
 		output[0] = 2; //failed, stage 2, key writing
@@ -768,6 +807,14 @@ void generate_device_key(uint8_t *output, uint8_t *buf, uint8_t buflen){
 #ifndef _PRODUCTION_RELEASE
 	u2f_prints("u2f_zero_const: "); dump_hex(buf,U2F_CONST_LENGTH);
 	memmove(output+1+32, buf, 16);
+
+	SHA_HMAC_KEY = U2F_DEVICE_KEY_SLOT;
+	SHA_FLAGS = ATECC_SHA_HMACSTART;
+	u2f_sha256_start();
+	u2f_sha256_update("successful write test");
+	SHA_FLAGS = ATECC_SHA_HMACEND;
+	u2f_sha256_finish();
+	memmove(output+1+16, res_digest.buf, 16);
 #endif
 }
 
@@ -899,6 +946,26 @@ void atecc_setup_device(struct config_msg * msg)
 			u2f_prints("U2F_CONFIG_GEN_DEVICE_KEY\r\n");
 			generate_device_key(usbres.buf, appdata.tmp, sizeof(appdata.tmp));
 			break;
+
+#ifndef _PRODUCTION_RELEASE
+		case U2F_CONFIG_GET_SLOTS_FINGERPRINTS:
+			usbres.buf[0] = 0;
+
+			for (i=0; i<16; i++){
+				SHA_HMAC_KEY = i;
+				SHA_FLAGS = ATECC_SHA_HMACSTART;
+				u2f_sha256_start();
+				u2f_sha256_update("successful write test");
+				SHA_FLAGS = ATECC_SHA_HMACEND;
+				u2f_sha256_finish();
+				if (get_app_error() == ERROR_NOTHING)
+						memmove(usbres.buf+i*3+1, res_digest.buf, 3);
+			}
+
+			usbres.buf[0] = 1;
+			set_app_error(ERROR_NOTHING);
+			break;
+#endif
 
 		case U2F_CONFIG_LOAD_ATTEST_KEY:
 			u2f_prints("U2F_CONFIG_LOAD_ATTEST_KEY\r\n");

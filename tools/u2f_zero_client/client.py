@@ -170,6 +170,7 @@ class commands:
     U2F_CONFIG_ATECC_PASSTHROUGH = 0x8a
     U2F_CONFIG_LOAD_READ_KEY = 0x8b
     U2F_CONFIG_GEN_DEVICE_KEY = 0x8c
+    U2F_CONFIG_GET_SLOTS_FINGERPRINTS = 0x8d
 
     U2F_CUSTOM_RNG = 0x21
     U2F_CUSTOM_SEED = 0x22
@@ -185,13 +186,14 @@ if len(sys.argv) not in [2,3,4,5,6]:
     print('actions: ')
     print("""   configure <ecc-private-key>: setup the device configuration.
     Specify ECC P-256 private key for token attestation.  Specify temporary output file for generated
-    keys. Reuses r/w keys if --reuse-keys is specified.""")
+    keys.""")
     print('     rng: Continuously dump random numbers from the devices hardware RNG.')
     print('     seed: update the hardware RNG seed with input from stdin')
     print('     list: list all connected U2F Zero tokens.')
     print('     wink: blink the LED')
     print('     ping <bytes count>: test ping capabilities of the device')
     print('     bootloader-destroy: permanently disable the bootloader')
+    print('     fingerprints: print data slots fingerprints (debug firmware only)')
     sys.exit(1)
 
 def open_u2f(SN=None):
@@ -299,6 +301,15 @@ def do_passt(h):
     print(repr(res))
 
 
+def next_i(iterator, count):
+    res = []
+    try:
+        for i in range(count):
+            res.append(next(iterator))
+    except:
+        pass
+    return res
+
 def do_configure(h,pemkey):
 
     if not os.path.exists(pemkey):
@@ -370,8 +381,14 @@ def do_configure(h,pemkey):
     data = read_n_tries(h, 5, 64, 1000)
     if data[1] != 1:
         die('failed generating device key' + repr(data[:2]))
-    print('generated device key: ' + repr(data[2:32+2]))
-    print('generated u2f_zero_const: ' + repr(data[32+2:32+2+16]))
+
+
+
+    data_i = iter(data)
+    next_i(data_i, 2)
+    print('generated device key: ' + repr(next_i(data_i, 16)))
+    print('written device key hash: ' + repr(next_i(data_i, 16)))
+    print('generated u2f_zero_const: ' + repr(next_i(data_i, 16)))
     print('full response: ' + repr(data))
 
 
@@ -552,6 +569,20 @@ def do_ping(h, num):
         print('{} {}'.format(len(data_req), len(data_resp)))
 
 
+def do_fingerprints(h):
+    print('Get data slots fingerprints')
+    h.write([0, commands.U2F_CONFIG_GET_SLOTS_FINGERPRINTS])
+    data = read_n_tries(h, 5, 64, 1000)
+    print (len(data), repr(data))
+    if len(data) < 2:
+        return
+    data_i = iter(data)
+    print('status', repr(next_i(data_i, 2)))
+    for i in range(16):
+        print('{}: {}'.format(i, repr(next_i(data_i, 3))))
+    print()
+
+
 if __name__ == '__main__':
     action = sys.argv[1].lower()
     h = None
@@ -588,6 +619,9 @@ if __name__ == '__main__':
     elif action == 'wink':
         h = open_u2f(SN)
         do_wink(h)
+    elif action == 'fingerprints':
+        h = open_u2f(SN)
+        do_fingerprints(h)
     elif action == 'bootloader-destroy':
         h = open_u2f(SN)
         bootloader_destroy(h)

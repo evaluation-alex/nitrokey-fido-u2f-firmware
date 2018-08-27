@@ -44,7 +44,7 @@
 #define U2F_MASTER_KEY_SLOT			1
 #define U2F_TEMP_KEY_SLOT			2
 #define U2F_WKEY_KEY_SLOT			1
-#define U2F_DEVICE_KEY_SLOT			3
+#define U2F_DEVICE_KEY_SLOT			5
 
 // Comment these out to fit firmware with a bootloader.
 #define U2F_SUPPORT_WINK
@@ -57,7 +57,7 @@
 //#define DISABLE_WATCHDOG
 
 // Uncomment this to make configuration firmware (stage 1 firmware)
-//#define ATECC_SETUP_DEVICE
+#define ATECC_SETUP_DEVICE
 
 // Uncomment to make a production firmware release, with selected flags
 //#define _PRODUCTION_RELEASE
@@ -147,6 +147,7 @@ struct APP_DATA
 #define U2F_CONFIG_ATECC_PASSTHROUGH	0x8a
 #define U2F_CONFIG_LOAD_RMASK_KEY		0x8b
 #define U2F_CONFIG_GEN_DEVICE_KEY		0x8c
+#define U2F_CONFIG_GET_SLOTS_FINGERPRINTS	0x8d
 
 #ifdef ATECC_SETUP_DEVICE
 // 1 page - 64 bytes

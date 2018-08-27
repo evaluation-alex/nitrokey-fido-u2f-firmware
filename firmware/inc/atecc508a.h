@@ -61,6 +61,7 @@
 
 #define ATECC_CMD_WRITE 				0x12
 	// P1 same as for read
+	#define ATECC_RW_ENCRYPTED			0x40
 	// P2 write addr
 
 	#define ATECC_EEPROM_SLOT(x) 		(0x5 + ((x)>>1))
