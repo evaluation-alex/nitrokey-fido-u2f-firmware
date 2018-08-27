@@ -776,8 +776,11 @@ void generate_device_key(uint8_t *output, uint8_t *buf, uint8_t buflen){
 	compute_write_hash(trans_key,  EEPROM_DATA_WMASK, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT));
 
 	atecc_prep_encryption();
+
 	memmove(appdata.tmp, trans_key, 32);
 	memmove(appdata.tmp+32, res_digest.buf, 32);
+
+	eeprom_xor(EEPROM_DATA_WMASK, appdata.tmp, 32);
 
 	if(atecc_send_recv(ATECC_CMD_WRITE,
 		ATECC_RW_DATA|ATECC_RW_EXT, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT),
