@@ -186,7 +186,7 @@ if len(sys.argv) not in [2,3,4,5,6]:
     print('actions: ')
     print("""   configure <ecc-private-key>: setup the device configuration.
     Specify ECC P-256 private key for token attestation.  Specify temporary output file for generated
-    keys. Reuses r/w keys if --reuse-keys is specified.""")
+    keys.""")
     print('     rng: Continuously dump random numbers from the devices hardware RNG.')
     print('     seed: update the hardware RNG seed with input from stdin')
     print('     list: list all connected U2F Zero tokens.')
