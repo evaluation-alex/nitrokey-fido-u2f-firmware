@@ -777,7 +777,7 @@ void generate_device_key(uint8_t *output, uint8_t *buf, uint8_t buflen){
 
 #ifndef _PRODUCTION_RELEASE
 	u2f_prints("device key: "); dump_hex(trans_key,32);
-	memmove(output+1, trans_key, 32);
+	memmove(output+1, trans_key, 16);
 #endif
 
 	compute_write_hash(trans_key,  EEPROM_DATA_WMASK, ATECC_EEPROM_DATA_SLOT(U2F_DEVICE_KEY_SLOT));
@@ -807,6 +807,14 @@ void generate_device_key(uint8_t *output, uint8_t *buf, uint8_t buflen){
 #ifndef _PRODUCTION_RELEASE
 	u2f_prints("u2f_zero_const: "); dump_hex(buf,U2F_CONST_LENGTH);
 	memmove(output+1+32, buf, 16);
+
+	SHA_HMAC_KEY = U2F_DEVICE_KEY_SLOT;
+	SHA_FLAGS = ATECC_SHA_HMACSTART;
+	u2f_sha256_start();
+	u2f_sha256_update("successful write test");
+	SHA_FLAGS = ATECC_SHA_HMACEND;
+	u2f_sha256_finish();
+	memmove(output+1+16, res_digest.buf, 16);
 #endif
 }
 
