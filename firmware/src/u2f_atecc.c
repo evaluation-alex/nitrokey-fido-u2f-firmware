@@ -100,11 +100,13 @@ int8_t u2f_get_user_feedback()
 #endif
 		}
 
-	if (button_get_press() == 1
-#ifdef FAKE_TOUCH
-			|| true
+#ifndef FAKE_TOUCH
+	if (button_get_press() == 1)
+#else //FAKE_TOUCH
+	if (true)
 #endif
-			) {                          // Button has been pushed in time
+	{
+		// Button has been pushed in time
 		user_presence = 1;
 		led_off();
 #ifdef SHOW_TOUCH_REGISTERED

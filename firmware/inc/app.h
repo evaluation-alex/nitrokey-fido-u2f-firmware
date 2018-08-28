@@ -55,6 +55,7 @@
 #define SHOW_TOUCH_REGISTERED
 
 //#define DISABLE_WATCHDOG
+//#define FAKE_TOUCH
 
 // Uncomment this to make configuration firmware (stage 1 firmware)
 #define ATECC_SETUP_DEVICE
@@ -69,6 +70,7 @@
 //#define U2F_BLINK_ERRORS
 
 #ifdef _PRODUCTION_RELEASE
+	#undef FAKE_TOUCH
 	#undef SHOW_TOUCH_REGISTERED
 	#undef DISABLE_WATCHDOG
 	#undef U2F_PRINT
