@@ -199,8 +199,6 @@ int16_t main(void) {
 			watchdog();
 #endif
 
-#endif //U2F_BLINK_ERRORS
-
 #ifdef ON_ERROR_RESET_IMMEDIATELY
 			u2f_delay(100);
 			RSTSRC = RSTSRC_SWRSF__SET | RSTSRC_PORSF__SET;
@@ -218,6 +216,7 @@ int16_t main(void) {
 			// wait for watchdog to reset
 			while(1)
 				;
+#endif //U2F_BLINK_ERRORS
 
 #endif
 		}
