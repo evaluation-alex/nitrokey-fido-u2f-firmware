@@ -166,11 +166,11 @@ int16_t main(void) {
 				} else {
 					u2f_hid_request(hid_msg);
 				}
-#else
+#else //!ATECC_SETUP_DEVICE
 				if (!custom_command(hid_msg)) {
 					 u2f_hid_request(hid_msg);
 				}
-#endif
+#endif //ATECC_SETUP_DEVICE
 				if (state == APP_HID_MSG) {                // The USB msg doesnt ask a special app state
 					state = APP_NOTHING;	               // We can go back to idle
 				}
