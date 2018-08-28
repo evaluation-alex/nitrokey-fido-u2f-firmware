@@ -248,7 +248,6 @@ void u2f_sha256_start(uint8_t hmac_key, uint8_t sha_flags)
 	atecc_send_recv(ATECC_CMD_SHA,
 			sha_ctx.SHA_FLAGS, sha_ctx.SHA_HMAC_KEY,NULL,0,
 			sha_ctx.shabuf, sizeof(sha_ctx.shabuf), NULL);
-	sha_ctx.SHA_HMAC_KEY = 0;
 }
 
 void u2f_sha256_start_default()
@@ -720,7 +719,7 @@ void generate_mask(uint8_t *output, uint8_t wkey){
 		}
 	}
 
-	u2f_sha256_start();
+	u2f_sha256_start_default();
 	u2f_sha256_update(output+32, 32);
 
 	memset(output, 0, 64);
@@ -739,7 +738,7 @@ void generate_mask(uint8_t *output, uint8_t wkey){
 	u2f_prints("generated key mask output: "); dump_hex(output,32);
 
 	//stage 2
-	u2f_sha256_start();
+	u2f_sha256_start_default();
 	u2f_sha256_update(output, 32);
 	u2f_sha256_finish();
 
