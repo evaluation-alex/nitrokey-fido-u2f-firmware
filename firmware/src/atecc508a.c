@@ -328,7 +328,7 @@ void compute_write_hash(uint8_t * key, uint16_t mask, int slot)
 	// SHA-256(TempKey, Opcode, Param1, Param2, SN<8>, SN<0:1>, <25 bytes of zeros>, PlainTextData)
 	eeprom_read(mask, appdata.tmp, CWH_WMASK_LEN);
 
-	u2f_sha256_start();
+	u2f_sha256_start_default();
 	u2f_sha256_update(appdata.tmp, CWH_WMASK_LEN);
 
 	memset(appdata.tmp,0,CWH_HEADER_LEN+CWH_ZEROES_COUNT);
@@ -793,11 +793,8 @@ void generate_device_key(uint8_t *output, uint8_t *buf, uint8_t buflen){
 	u2f_prints("u2f_zero_const: "); dump_hex(buf,U2F_CONST_LENGTH);
 	memmove(output+1+32, buf, 16);
 
-	SHA_HMAC_KEY = U2F_DEVICE_KEY_SLOT;
-	SHA_FLAGS = ATECC_SHA_HMACSTART;
-	u2f_sha256_start();
+	u2f_sha256_start(U2F_DEVICE_KEY_SLOT, ATECC_SHA_HMACSTART);
 	u2f_sha256_update("successful write test");
-	SHA_FLAGS = ATECC_SHA_HMACEND;
 	u2f_sha256_finish();
 	memmove(output+1+16, res_digest.buf, 16);
 #endif
@@ -938,11 +935,8 @@ void atecc_setup_device(struct config_msg * msg)
 			usbres.buf[0] = 0;
 
 			for (i=0; i<16; i++){
-				SHA_HMAC_KEY = i;
-				SHA_FLAGS = ATECC_SHA_HMACSTART;
-				u2f_sha256_start();
+				u2f_sha256_start(i, ATECC_SHA_HMACSTART);
 				u2f_sha256_update("successful write test");
-				SHA_FLAGS = ATECC_SHA_HMACEND;
 				u2f_sha256_finish();
 				if (get_app_error() == ERROR_NOTHING)
 						memmove(usbres.buf+i*3+1, res_digest.buf, 3);
