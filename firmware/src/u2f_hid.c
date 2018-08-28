@@ -181,12 +181,6 @@ void u2f_hid_writeback(uint8_t * payload, uint16_t len)
 
 
 
-static void refresh_cid(struct CID* c)
-{
-	c->last_used = get_ms();
-}
-
-
 static uint32_t get_new_cid()
 {
 	static uint32_t base = 0xcafebabe;
